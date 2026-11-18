@@ -857,9 +857,9 @@ function map(){
    '<div class="net" id="net" aria-label="3D map of the nine hops. The same hops are listed below."></div>'+
    '<div class="cols"><div class="trace"><div class="trace-h">$ traceroute <b>the-offer</b> · 9 hops max · pass the quiz at 80% and clear every lab to reach a hop</div>'+hops+'</div>'+
    '<aside class="side">'+(function(){var r=rmStats("core","all");return '<div class="card"><h3>Remember</h3><p>'+(r.due?"<b>"+r.due+"</b> due for review today.":"Nothing due right now.")+' '+r.known+' of '+r.all.length+' learned.</p><div class="row"><a class="btn sm" href="#remember" style="text-decoration:none">Start five minutes</a></div></div>';})()+'<div class="card pager"><h3>On-call pager</h3><p>A random incident from any level. No warning, like the real thing.</p><div class="alert" id="pg">No pages. Quiet shift.</div><div class="row"><button class="btn" id="pgb">Take a page</button></div></div>'+
-   '<div class="card"><h3>How to use this</h3><p><b>Speak</b> tabs are the point. Say the answer out loud against the 90-second clock before you reveal it.</p><p>Progress saves in this browser only.</p><div class="row"><button class="btn ghost sm" id="rst">Reset progress</button></div></div>'+
+   '<div class="card"><h3>How to use this</h3><p>Start each day with five minutes of <b>Remember</b>, then a lesson and its quiz. Once the words come easily, use the <b>Speak</b> tabs: say the answer out loud against the 90-second clock before you reveal it.</p><p>Progress saves in this browser, and to your account if you sign in.</p><div class="row"><button class="btn ghost sm" id="rst">Reset progress</button></div></div>'+
    '<div class="card" id="ivc"></div>'+
-   '<div class="card"><h3>Also here</h3><p><a href="#codelab">Code Lab</a>: Bash and Python exercises that really run, with hidden tests, for coding screens.</p><p><a href="#drills">Drills</a>: every card by topic, timed or cover-the-column, plus your own imported packs.</p><p><a href="#stories">Stories</a>: your incident stories and the behavioural bank.</p></div></aside></div>';
+   '<div class="card"><h3>Also here</h3><p><a href="#remember">Remember</a>: five-minute spaced-repetition rounds over every term and answer.</p><p><a href="#codelab">Code Lab</a>: Bash and Python exercises that really run, with hidden tests, for coding screens.</p><p><a href="#certs">Certs</a>: CompTIA A+ and Red Hat RHCSA, with labs and timed mock exams.</p><p><a href="#drills">Drills</a>: every card by topic, timed or cover-the-column, plus your own imported packs.</p><p><a href="#stories">Stories</a>: your incident stories and the behavioural bank.</p><p><a href="#account">Account</a>: optional sign-in to sync across devices.</p></div></aside></div>';
   stop3d=net3d($("#net"))||null;
   ivCard($("#ivc"),false);
   var pick=null;
@@ -870,10 +870,10 @@ function map(){
   var armed=false;$("#rst").onclick=function(){if(!armed){armed=true;this.textContent="Click again to erase everything";return;}
     S={quiz:{},mis:{},cards:{},notes:S.notes,asks:[],mock:0,v2:1,lab:{},code:{},srs:{},rm:{},cert:{},iv:S.iv,stories:S.stories,resetAt:Date.now()};save();map();};
 }
-/* Next interview: typed by the user, saved in this browser only, rendered as text. */
+/* Next interview: typed by the user, saved in this browser (and the user's own synced row if signed in), rendered as text. */
 var IVF=[["role","Role","SRE II, Platform Engineer…"],["company","Company","Who it's with"],["when","When","Mon Nov 23, 12:30 ET, video call"],["who","With whom","Hiring manager, recruiter, panel…"],["stages","Stages","One per line: recruiter screen, hiring manager, panel + coding…"]];
 function ivCard(box,editing){var iv=S.iv,has=IVF.some(function(f){return iv[f[0]];});
-  if(editing){box.innerHTML='<h3>Next interview</h3><p>Stays in this browser. Nothing is sent anywhere.</p>'+IVF.map(function(f){var id="iv-"+f[0],v=esc(iv[f[0]]||"");
+  if(editing){box.innerHTML='<h3>Next interview</h3><p>Saved in this browser, and privately to your account if you sign in and sync.</p>'+IVF.map(function(f){var id="iv-"+f[0],v=esc(iv[f[0]]||"");
       return '<label class="dgl" for="'+id+'">'+f[1]+'</label>'+(f[0]==="stages"?'<textarea id="'+id+'" placeholder="'+esc(f[2])+'">'+v+'</textarea>':'<input class="fld" id="'+id+'" maxlength="120" placeholder="'+esc(f[2])+'" value="'+v+'">');}).join("")+
       '<div class="row" style="margin-top:10px"><button class="btn sm" id="ivs">Save</button><button class="btn ghost sm" id="ivx">Cancel</button>'+(has?'<button class="btn ghost sm" id="ivd">Clear</button>':'')+'</div>';
     $("#ivs").onclick=function(){var o={};IVF.forEach(function(f){var v=$("#iv-"+f[0]).value.trim().slice(0,f[0]==="stages"?1000:120);if(v)o[f[0]]=v;});S.iv=o;save();map();};
@@ -1035,7 +1035,7 @@ function speak(p,ids,tag,onEnd){
 }
 
 /* ---------- level 8 ---------- */
-/* Behavioural bank: generic prompts. Your answers are typed here and stay in this browser. */
+/* Behavioural bank: generic prompts. Your answers are typed here, saved in this browser, and synced privately if signed in. */
 var BEHAV=[
  ["Tell me about a production incident you handled.","Calm under pressure, a method, and what you changed afterwards."],
  ["Tell me about a time you found the root cause when a workaround kept coming back.","Whether you stop at the symptom."],
@@ -1056,12 +1056,12 @@ function storyHtml(x,i){return '<div class="story"><h3>'+esc(x.t||"")+(x.w?' <sp
 function storiesPage(){
   var st=ME.stories||[],gaps=ME.gaps||[];
   app.innerHTML='<div class="lvh"><span class="kicker">Stories</span><h1>Evidence, in 90 seconds</h1><p class="lede">Every claim gets a story. Each one runs: situation in one line, what you checked, what you found, the fix, the lesson. Say each three times, in your own words, under 90 seconds.</p></div>'+
-   '<div class="lesson"><h3>Your stories</h3><p>Write four or five real incidents you can tell under pressure. They stay in this browser and are never uploaded.</p></div>'+
+   '<div class="lesson"><h3>Your stories</h3><p>Write four or five real incidents you can tell under pressure. They are saved in this browser, and privately to your account if you sign in and sync. Nobody else can read them.</p></div>'+
    st.map(function(x){return storyHtml({t:x[0],w:x[1],u:x[2],s:x[3],l:x[4]},-1);}).join("")+
    S.stories.map(function(x,i){return storyHtml(x,i);}).join("")+
    '<div id="sform" style="margin:6px 0 30px"><button class="btn" id="sadd">Add a story</button></div>'+
    (gaps.length?'<div class="lesson"><h3>Lines to firm up</h3><p>The truth is what makes a line survive a follow-up. Write what you actually did, at its real size.</p></div>'+gaps.map(function(g){return '<div class="gap"><label for="'+esc(g[0])+'">'+esc(g[1])+'</label><small>'+esc(g[2])+'</small><textarea id="'+esc(g[0])+'">'+esc(S.notes[g[0]]||"")+'</textarea></div>';}).join(""):"")+
-   '<div class="lesson"><h3>The behavioural bank</h3><p>Thirteen questions SRE, DevOps and platform interviews draw from. For each, note which story you would tell and its first sentence. What you type saves in this browser only.</p></div>'+
+   '<div class="lesson"><h3>The behavioural bank</h3><p>Thirteen questions SRE, DevOps and platform interviews draw from. For each, note which story you would tell and its first sentence. What you type saves in this browser, and to your account if you sign in.</p></div>'+
    BEHAV.map(function(q,i){return '<div class="gap"><label for="bh-'+i+'">'+esc(q[0])+'</label><small>They are checking: '+esc(q[1])+'</small><textarea id="bh-'+i+'" placeholder="Which story, and your first sentence">'+esc(S.notes["bh-"+i]||"")+'</textarea></div>';}).join("")+
    '<div class="row" style="margin-top:8px"><button class="btn" id="bhgo">Drill these out loud, timed</button></div><div id="bhp" style="margin-top:18px"></div>';
   [].forEach.call(app.querySelectorAll("textarea"),function(t){t.oninput=function(){S.notes[t.id]=t.value;save();};});
@@ -1316,7 +1316,7 @@ function certPct(C,di){var st=certSt(C.id),qs=certQs(C).filter(function(q){retur
 function certsPage(){var ids=Object.keys(CERTS);
   app.innerHTML='<div class="lvh"><span class="kicker">Certifications</span><h1>Exam prep, one cert at a time</h1><p class="lede">Each exam has the official domains and their weights, study notes, a Remember deck for the terms, practice questions with explanations, and a timed practice exam. Questions here are written for this site; they are not real exam items.</p></div>'+
    '<div class="mlist">'+ids.map(function(id){var C=CERTS[id],p=certPct(C),r=rmStats(id,"all");return '<a class="m cert-card" href="#cert-'+id+'"><span class="tag">'+esc(C.code)+'</span><b>'+esc(C.name)+'</b><span>'+p.ok+' of '+p.n+' questions right · '+r.known+' of '+r.all.length+' cards learned</span></a>';}).join("")+
-   CERT_NEXT.map(function(c){return '<div class="m cert-card soon"><span class="tag">'+esc(c[1])+'</span><b>'+esc(c[0])+'</b><span>Next, once A+ is working well</span></div>';}).join("")+'</div>';}
+   CERT_NEXT.map(function(c){return '<div class="m cert-card soon"><span class="tag">'+esc(c[1])+'</span><b>'+esc(c[0])+'</b><span>Coming next</span></div>';}).join("")+'</div>';}
 function certPage(id){var C=CERTS[id];if(!C){certsPage();return;}
   var tabs=[["overview","Overview"],["remember","Remember"],["practice","Practice"]].concat((C.labs||[]).length?[["labs","Labs"]]:[]).concat((C.mocks||[]).length?[["mocks","Mock exams"]]:[]).concat((C.pbqs||[]).length?[["pbq",C.pbqName||"PBQs"]]:[]).concat([["exam","Practice exam"]]);
   app.innerHTML='<div class="row" style="margin-bottom:10px"><a class="btn ghost sm" href="#certs" style="text-decoration:none">← All certifications</a></div><div class="lvh"><span class="kicker">'+esc(C.code)+'</span><h1>'+esc(C.name)+'</h1><p class="lede">'+esc(C.blurb||"")+'</p></div>'+
