@@ -92,6 +92,16 @@ Anyone using the site can also type their own stories and interview details on t
 
 Read [SECURITY.md](SECURITY.md) before publishing anything. The pre-commit hook runs `node scripts/check-private.mjs` on every commit; install it with `cp scripts/pre-commit .git/hooks/pre-commit`.
 
+## License
+
+- **Code** (app, scripts, tests, workflows, SQL): [MIT](LICENSE).
+- **Learning content** (lessons, quizzes, cards, glossary, labs, Code Lab exercises, cert packs): [CC BY-NC-SA 4.0](LICENSE-CONTENT.md). Free to share and adapt with credit, not for sale.
+- **Third-party code** keeps its own license: the vendored Supabase client is MIT (`quest/vendor/supabase-LICENSE.txt`). three.js (MIT) and Brython (BSD-3-Clause) load from cdnjs and are not redistributed here.
+
+## Trademarks
+
+CompTIA, A+, Network+ and Security+ are trademarks of CompTIA, Inc. Red Hat and RHCSA are trademarks of Red Hat, Inc. Cisco and CCNA are trademarks of Cisco Systems, Inc. Nines is an independent study project. It is not affiliated with, endorsed by or sponsored by any of them, and its questions are not real exam items.
+
 ## Limits
 
 - The terminal labs and mock exams are simulated: they accept the commands each task expects, not arbitrary shell. Practise on a real VM too.
