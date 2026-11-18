@@ -1,0 +1,54 @@
+<title>Nines Banner Options</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;700&family=IBM+Plex+Mono:wght@600&display=swap">
+<style>
+/* Layout: the map's top banner at five heights, stacked at the app's real content width, tallest first. */
+:root{--night:#141935;--pen:#0d1130;--fg:#eef0ff;--muted:#a9b0d8;--moon:#f4eedc;--dusk:#e59ab3;--lantern:#f2c46d;
+  --display:"Dela Gothic One","Arial Black",Impact,sans-serif;--body:"Zen Kaku Gothic New","Segoe UI",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--night);color:var(--fg);font:16px/1.6 var(--body)}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:36px 60px;display:grid;gap:40px}
+h1,h2{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.8rem,4.5vw,2.6rem);line-height:1.1}
+.intro p{color:var(--muted);margin:.5em 0 0;max-width:64ch}
+.opt{display:grid;gap:10px}
+.opt header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
+.opt h2{font-size:1.25rem}
+.tag{font:600 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dusk)}
+.rec{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;background:var(--lantern);color:var(--pen);border-radius:99px;padding:2px 9px}
+.opt p{margin:0;color:var(--muted);max-width:68ch}
+.city{position:relative;border:3px solid var(--pen);border-radius:14px;overflow:hidden;box-shadow:0 24px 50px -24px #000c}
+.city svg{display:block;width:100%;height:auto}
+.ttl{position:absolute;inset:0;display:grid;place-content:center;text-align:center;pointer-events:none;padding-bottom:var(--pb,0)}
+.ttl b{display:block;font:400 clamp(1.8rem,7vw,4.4rem)/1 var(--display);color:var(--moon);text-shadow:3px 3px 0 var(--pen),-1px -1px 0 var(--pen)}
+.ttl span{font:600 clamp(.58rem,1.4vw,.8rem) var(--mono);letter-spacing:.2em;text-shadow:2px 2px 0 var(--pen)}
+.ttl.left{place-content:center start;text-align:left;padding-left:5%}
+.blink{animation:blink 2s ease-in-out infinite}@keyframes blink{50%{opacity:.2}}
+@media (prefers-reduced-motion:reduce){.blink{animation:none}}
+</style>
+
+<div class="wrap">
+  <div class="intro">
+    <span class="tag">Nines · Quest map</span>
+    <h1>How tall should the top banner be?</h1>
+    <p>Each option below is drawn at the width the map really uses. The pixel height is what you'd see on a laptop. On a phone, every option scales down with the screen width.</p>
+  </div>
+  <div id="opts"></div>
+</div>
+
+<script src="night.js"></script>
+<script>
+(function(){
+  var O=[
+    ["A","Full scene","About 450 px","The current version: city, railing and the lit noodle stand below. Most atmosphere, but it pushes the map and the hop list well down the page.",{},"",""],
+    ["B","City and railing, no stall","About 270 px","Keeps the skyline, the cell tower, the power lines and the railing, and drops the tree-and-stall floor. Roughly 40% shorter, and still clearly a city.",{shop:false,vh:316},"rec","34%"],
+    ["C","Rooftops only","About 200 px","The same city cropped tighter: the top of the sky is trimmed, so the buildings and the tower carry it. The moon is cut off.",{shop:false,vy:90,vh:226},"","20%"],
+    ["D","Night sky only","About 190 px","No buildings at all: grid, stars, moon and the pink-edged clouds. The calmest of the four, and the title gets the most room.",{city:false,vh:240},"",""],
+    ["E","Thin strip","About 120 px","A sky band the height of a header. The title moves to the left so the moon stays in view on the right.",{city:false,vy:40,vh:150},"left",""]
+  ];
+  document.getElementById("opts").outerHTML='<div style="display:grid;gap:44px">'+O.map(function(o,i){
+    var p=o[4];p.id="v"+i;
+    return '<section class="opt"><header><span class="tag">Option '+o[0]+'</span><h2>'+o[1]+'</h2><span class="tag" style="color:var(--muted)">'+o[2]+'</span>'+(o[5]==="rec"?'<span class="rec">My pick</span>':'')+'</header><p>'+o[3]+'</p>'+
+      '<div class="city">'+window.NightScene(p)+'<div class="ttl'+(o[5]==="left"?" left":"")+'"'+(o[6]?' style="--pb:'+o[6]+'"':'')+' aria-hidden="true"><b>NINES</b><span>99.99% · ON CALL TONIGHT</span></div></div></section>';}).join("")+'</div>';
+})();
+</script>

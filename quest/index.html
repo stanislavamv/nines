@@ -1,0 +1,1445 @@
+<meta charset="utf-8">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Nines</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one column, a sticky status bar, and a map drawn as a traceroute: nine hops from Tier 1 to SRE II.
+   Look: a city at night. The map is the full illustrated scene, lessons sit under a dusk grid sky,
+   and the Code Lab and Drills are lantern-and-ink: cream paper cards with thick outlines. */
+:root{
+  color-scheme:dark;
+  --ink:#141935; --panel:#1c2349; --panel2:#262e5e; --line:#39427a;
+  --fg:#eef0ff; --mut:#a9b0d8;
+  --syn:#f2c46d;   /* lantern: the accent, things in flight */
+  --ack:#72d3ae;   /* done, correct */
+  --rst:#f07084;   /* wrong, pages */
+  --info:#a8b8ff;
+  --pen:#0d1130;   /* the outline colour */
+  --dusk:#e59ab3; --moon:#f4eedc; --noren:#c8394a; --paper:#f6e7c8;
+  --display:"Dela Gothic One","Arial Black",Impact,system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:auto}
+body{background:var(--ink);color:var(--fg);font:16px/1.6 var(--body);margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--ink)}
+a{color:var(--info)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--syn);outline-offset:2px}
+code,pre,.mono{font-family:var(--mono)}
+code{font-size:.88em;background:var(--panel2);padding:.1em .35em;border-radius:4px;overflow-wrap:anywhere}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* status bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--ink);border-bottom:1px solid var(--line)}
+.bar .wrap{display:flex;gap:14px;align-items:center;padding-block:10px;flex-wrap:wrap}
+.brand{font:800 1.05rem var(--display);letter-spacing:.01em;text-decoration:none;color:var(--fg)}
+.brand b{color:var(--syn)}
+.rank{font:500 .8rem var(--mono);color:var(--ack);border:1px solid var(--line);padding:3px 9px;border-radius:99px;white-space:nowrap}
+.xp{flex:1 1 140px;min-width:120px;display:flex;align-items:center;gap:8px;font:500 .78rem var(--mono);color:var(--mut)}
+.xp i{flex:1;height:6px;background:var(--panel2);border-radius:99px;overflow:hidden;display:block}
+.xp i b{display:block;height:100%;background:var(--syn);width:0;transition:width .4s}
+.navlink{font:500 .85rem var(--body);color:var(--mut);text-decoration:none;padding:4px 2px}
+.navlink:hover,.navlink.on{color:var(--fg)}
+.navlink.on{border-bottom:2px solid var(--syn)}
+.pnote{margin:1.6em 0 0;border:1px solid var(--line);border-left:3px solid var(--info);border-radius:0 10px 10px 0;padding:10px 14px;background:var(--panel)}
+.pnote.me{border-left-color:var(--ack)}
+.pnote .k{font:500 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--info)}
+.pnote.me .k{color:var(--ack)}
+.pnote p{margin:.4em 0}
+.cover td:first-child{color:var(--mut);font-family:var(--mono)}
+.cover td:nth-child(2){white-space:normal;min-width:220px;font-weight:500}
+.cover td:nth-child(3){min-width:280px}
+.cov{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:3px 10px;font-size:.82rem;color:var(--mut)}
+.cov+.ans{margin-top:8px}
+input[type=file]{font:inherit;font-size:.88rem;color:var(--mut);max-width:100%}
+
+main{padding-block:28px 80px}
+.kicker{font:500 .78rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--syn)}
+.lede{color:var(--mut);max-width:62ch}
+
+/* map */
+.hero{display:grid;gap:14px;margin-bottom:26px}
+.hero h1{font-size:clamp(2.1rem,6vw,3.6rem);font-weight:800;letter-spacing:-.02em}
+.hero h1 em{font-style:normal;color:var(--syn)}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:22px;align-items:start}
+@media (max-width:820px){.cols{grid-template-columns:minmax(0,1fr)}}
+.trace{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.trace-h{font:500 .82rem var(--mono);color:var(--mut);padding:12px 16px;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+.trace-h b{color:var(--fg);font-weight:500}
+.hop{display:grid;grid-template-columns:2.2rem minmax(0,1fr) auto;gap:10px;align-items:center;padding:13px 16px;border-bottom:1px solid var(--line);text-decoration:none;color:var(--fg)}
+.hop:last-child{border-bottom:0}
+.hop:hover{background:var(--panel2)}
+.hop .n{font:500 .9rem var(--mono);color:var(--mut)}
+.hop .t{font:700 1.08rem var(--display)}
+.hop .s{display:block;font-size:.85rem;color:var(--mut)}
+.hop .st{font:500 .76rem var(--mono);text-align:right;color:var(--mut);white-space:nowrap}
+.hop.done .n,.hop.done .st{color:var(--ack)}
+.hop.part .st{color:var(--syn)}
+.net{position:relative;height:440px;margin-bottom:22px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#16233a 0%,#0a101b 70%);touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none}
+.net.drag{cursor:grabbing}
+.net.over{cursor:pointer}
+.net canvas{display:block;width:100%;height:100%}
+.lbl{position:absolute;left:0;top:0;pointer-events:none;font:500 .74rem var(--mono);color:var(--fg);white-space:nowrap;will-change:transform;text-shadow:0 1px 4px #000}
+.lbl b{color:var(--syn);font-weight:600;margin-right:5px}
+.lbl.done b{color:var(--ack)}
+.lbl.sel{color:var(--syn)}
+.nethint{position:absolute;right:12px;top:10px;font:500 .72rem var(--mono);color:var(--mut);pointer-events:none}
+.netinfo{position:absolute;left:12px;bottom:12px;max-width:min(340px,calc(100% - 24px));background:rgba(12,19,31,.88);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:6px;cursor:default}
+.netinfo .k{font:500 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--syn)}
+.netinfo h3{font-size:1.15rem}
+.netinfo p{margin:0;font-size:.85rem;color:var(--mut)}
+@media (max-width:600px){.net{height:380px}.nethint{display:none}}
+.side{display:grid;gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+.card h3{font-size:1.02rem;margin-bottom:6px}
+.card p{margin:.4em 0;color:var(--mut);font-size:.92rem}
+.pager{border-color:var(--rst)}
+.pager .alert{font:500 .82rem var(--mono);color:var(--rst);min-height:2.6em;margin:.5em 0}
+.btn{background:var(--syn);color:#1b1404;border:0;border-radius:7px;padding:9px 14px;font-weight:600}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.btn.ghost:hover{background:var(--panel2);filter:none}
+.btn.sm{padding:5px 10px;font-size:.85rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* level */
+.lvh{display:grid;gap:8px;margin-bottom:18px}
+.lvh h1{font-size:clamp(1.8rem,5vw,2.7rem);font-weight:800;letter-spacing:-.015em}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:22px}
+.tab{background:none;border:0;border-bottom:2px solid transparent;padding:9px 13px;color:var(--mut);font-weight:500}
+.tab[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--syn)}
+.tab .c{font:500 .72rem var(--mono);color:var(--ack);margin-left:5px}
+
+.lesson{max-width:70ch}
+.lesson h3{font-size:1.25rem;margin:1.7em 0 .5em}
+.lesson h3:first-child{margin-top:0}
+.lesson p,.lesson li{margin:.55em 0}
+.lesson ul,.lesson ol{padding-left:1.2em}
+.rules li{padding-left:.2em}
+q{quotes:"\201C" "\201D"}
+.say{border-left:3px solid var(--syn);background:var(--panel);padding:10px 14px;border-radius:0 8px 8px 0;font-style:italic}
+.say::before{content:"Say it  ";font:500 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--syn);font-style:normal;display:block}
+.note{color:var(--syn);font-size:.92em}
+.scroll{overflow-x:auto;margin:.8em 0}
+.t{border-collapse:collapse;width:100%;font-size:.92rem}
+.t th{font:500 .72rem var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mut);text-align:left}
+.t th,.t td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.t td:first-child{white-space:nowrap}
+.t td{font-variant-numeric:tabular-nums}
+.code{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;overflow-x:auto;font-size:.82rem;line-height:1.7}
+.dg{margin:1em 0;overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px}
+.dg svg{display:block;min-width:560px;width:100%;height:auto;font-family:var(--mono)}
+.d-box{fill:var(--panel2);stroke:var(--line)} .d-hi{fill:var(--panel2);stroke:var(--syn)} .d-ok{fill:var(--panel2);stroke:var(--ack)} .d-bad{fill:var(--panel2);stroke:var(--rst)}
+.d-t{fill:var(--fg);font-size:12px} .d-m{fill:var(--mut);font-size:11px} .d-s{fill:var(--syn);font-size:11px} .d-a{fill:var(--ack);font-size:11px} .d-r{fill:var(--rst);font-size:11px}
+.d-l{stroke:var(--mut);stroke-width:1.4;fill:none} .d-ls{stroke:var(--syn);stroke-width:1.6;fill:none} .d-la{stroke:var(--ack);stroke-width:1.6;fill:none} .d-lr{stroke:var(--rst);stroke-width:1.6;fill:none;stroke-dasharray:4 3}
+.dgi{margin:1.1em 0;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--panel)}
+.dgi .dg{border:0;padding:0;margin:.5em 0;background:transparent}
+.dgi svg text{pointer-events:none}
+.dgh{margin:0 0 8px;font:500 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--syn)}
+.dgc{display:flex;gap:6px;flex-wrap:wrap}
+.chip{background:var(--panel2);border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:.85rem;color:var(--mut)}
+.chip:hover{color:var(--fg);border-color:var(--mut)}
+.chip[aria-pressed="true"]{background:var(--syn);border-color:var(--syn);color:#1b1404;font-weight:600}
+.dgo{margin:8px 0 0;font-size:.92rem;color:var(--mut);min-height:3.2em}
+.dgo b{color:var(--fg)}
+.dgl{display:block;margin:10px 0 4px;font-size:.88rem;color:var(--mut)}
+.dgl b{color:var(--syn)}
+.dgi input[type=range]{width:100%;accent-color:var(--syn)}
+.dgi input[type=checkbox]{accent-color:var(--syn)}
+.mtu{margin:12px 0 4px}
+.mtubar{display:flex;height:44px;border-radius:7px;overflow:hidden;background:var(--panel2);font:500 .78rem var(--mono)}
+.mtubar i{flex:0 0 0%;background:var(--line);color:var(--fg);font-style:normal;display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden;transition:flex-basis .35s}
+.mtubar b{flex:1;min-width:0;background:var(--syn);color:#1b1404;display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden}
+#bl{background:var(--panel2);color:var(--ack)}
+.d-on{stroke:var(--syn)!important;stroke-width:2.4;fill:rgba(242,184,75,.2)!important}
+[data-b]:focus-visible{outline:2px solid var(--syn)}
+.ed{min-height:300px;font:400 .86rem/1.6 var(--mono);background:#070b12;white-space:pre;overflow:auto;tab-size:4;resize:vertical}
+.fx{border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:var(--panel)}
+.fx summary{cursor:pointer;font:500 .8rem var(--mono);color:var(--mut)}
+.fx .code{border:0;padding:8px 0 2px;background:transparent;max-height:240px}
+.tres{border:1px solid var(--line);border-left:3px solid var(--rst);border-radius:0 10px 10px 0;padding:10px 14px;background:var(--panel)}
+.tres.good{border-left-color:var(--ack)}
+.tres p{margin:.3em 0 0;color:var(--mut);font-size:.92rem}
+.tres .steps li.x{color:var(--rst)}.tres .steps li.x::before{content:"\2715";color:var(--rst)}
+.tout{margin-top:10px}.tout .k{font:500 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.tout .code{margin:4px 0 0;max-height:260px}.tout .code.err{color:var(--rst)}
+.d-f1{fill:var(--line)} .d-f2{fill:var(--syn)} .d-f3{fill:var(--ack)} .d-f4{fill:var(--info)}
+
+/* quiz */
+.qz{display:grid;gap:16px;max-width:760px}
+.q{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+.q h4{font:600 1rem var(--body);margin:0 0 10px}
+.q .num{font:500 .75rem var(--mono);color:var(--mut)}
+.opts{display:grid;gap:8px}
+.opt{text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px 12px;line-height:1.45}
+.opt:hover:not(:disabled){border-color:var(--syn)}
+.opt.ok{border-color:var(--ack);color:var(--ack)}
+.opt.no{border-color:var(--rst);color:var(--rst)}
+.opt:disabled{cursor:default}
+.exp{margin-top:10px;font-size:.92rem;color:var(--mut);border-top:1px dashed var(--line);padding-top:10px}
+.score{font:500 .9rem var(--mono);color:var(--mut)}
+.score b{color:var(--ack)}
+
+/* terminal */
+.mlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.m{display:grid;gap:6px;align-content:start;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.m:hover{border-color:var(--syn)}
+.m b{font:700 1.02rem var(--display)}
+.m span{font-size:.86rem;color:var(--mut)}
+.m .tag{font:500 .72rem var(--mono);color:var(--mut)}
+.m.done .tag{color:var(--ack)}
+.lab{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:820px){.lab{grid-template-columns:minmax(0,1fr)}}
+.brief{display:grid;gap:10px}
+.brief h3{font-size:1.2rem}
+.brief p{margin:0;color:var(--mut);font-size:.93rem}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.steps li{display:grid;grid-template-columns:1.3rem minmax(0,1fr);gap:6px;font-size:.9rem;color:var(--mut)}
+.steps li::before{content:"\25CB";color:var(--mut)}
+.steps li.d{color:var(--fg)}
+.steps li.d::before{content:"\25CF";color:var(--ack)}
+.steps li.x{color:var(--rst)}.steps li.x::before{content:"\2715";color:var(--rst)}
+.term{background:#070b12;border:1px solid var(--line);border-radius:10px;overflow:hidden;min-width:0}
+.term-h{display:flex;justify-content:space-between;gap:8px;font:500 .75rem var(--mono);color:var(--mut);padding:7px 12px;border-bottom:1px solid var(--line);background:var(--panel)}
+.scr{height:min(56vh,460px);overflow:auto;padding:12px;font:400 .82rem/1.55 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere}
+.scr .p{color:var(--ack)} .scr .c{color:var(--fg)} .scr .o{color:#b9c6da} .scr .sys{color:var(--syn)} .scr .win{color:var(--ack)}
+.inl{display:flex;gap:8px;align-items:center;padding:9px 12px;border-top:1px solid var(--line);font:400 .82rem var(--mono)}
+.inl label{color:var(--ack);white-space:nowrap}
+.inl input{flex:1;min-width:0;background:transparent;border:0;color:var(--fg);font:inherit;outline:none;caret-color:var(--syn)}
+
+/* speak */
+.deck{max-width:720px;display:grid;gap:14px}
+.sc{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;display:grid;gap:14px}
+.sc h3{font-size:1.45rem}
+.timer{font:600 2.2rem var(--mono);font-variant-numeric:tabular-nums;color:var(--syn)}
+.timer.over{color:var(--rst)}
+.ans b{display:block;font:500 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--syn);margin-bottom:3px}
+.ans p{margin:0 0 12px}
+.ans .add{color:var(--mut)}
+.grade{display:flex;gap:8px;flex-wrap:wrap}
+.g-ok{border-color:var(--ack)!important;color:var(--ack)!important}
+.g-no{border-color:var(--rst)!important;color:var(--rst)!important}
+.story{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:12px;max-width:74ch}
+.story h3{font-size:1.15rem}
+.story .use{font:500 .78rem var(--mono);color:var(--syn);margin:4px 0 8px}
+.story p{margin:.5em 0}
+.story .les{color:var(--ack)}
+textarea{width:100%;min-height:74px;background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:9px;font:inherit;font-size:.93rem}
+.gap{display:grid;gap:6px;margin-bottom:14px;max-width:74ch}
+.gap label{font-weight:600}
+.gap small{color:var(--mut)}
+.asks{display:grid;gap:8px;max-width:74ch;margin:0;padding:0;list-style:none}
+.asks label{display:grid;grid-template-columns:1.4rem minmax(0,1fr);gap:8px;align-items:start}
+.asks input{margin-top:.35em;accent-color:var(--syn)}
+.sheet td:first-child{font-weight:600;color:var(--syn);white-space:normal}
+.fld{width:100%;background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:7px;padding:8px 9px;font:inherit;font-size:.93rem}
+.ivst{margin:.4em 0 .8em;padding-left:1.3em;color:var(--mut);font-size:.92rem}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ack);color:#04201a;font-weight:600;padding:10px 16px;border-radius:99px;z-index:20;max-width:calc(100% - 32px)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ===== Night city theme ===== */
+h1,h2,h3{font-weight:400!important;letter-spacing:.005em!important}
+.hop .t,.m b{font-weight:400}
+.brand b{color:var(--syn);font-weight:400}
+.bar{background:var(--pen);border-bottom:3px solid #000}
+.bar nav{align-self:flex-start;margin-top:-10px}
+.navlink{background-color:#2e3770;color:var(--mut);padding:7px 12px 9px;border:2px solid #000;border-top:0;border-radius:0 0 6px 6px;font-weight:600;
+  background-image:linear-gradient(90deg,transparent 48%,#0003 48% 52%,transparent 52%)}
+.navlink:hover{color:var(--fg)}
+.navlink.on{background-color:var(--noren);color:#fff;border-bottom:2px solid #000}
+.code,.ed{background:#0b0f26}
+.blink{animation:blink 2s ease-in-out infinite}
+@keyframes blink{50%{opacity:.2}}
+@media (prefers-reduced-motion:reduce){.blink{animation:none}}
+
+/* Map: the full scene */
+.city{position:relative;border:3px solid var(--pen);border-radius:14px;overflow:hidden;margin-bottom:24px;box-shadow:0 24px 50px -24px #000c}
+.city svg{display:block;width:100%;height:auto}
+.city .ttl{position:absolute;inset:0;display:grid;place-content:center;text-align:center;pointer-events:none}
+.city .ttl b{display:block;font:400 clamp(2rem,8vw,5rem)/1 var(--display);color:var(--moon);text-shadow:3px 3px 0 var(--pen),-1px -1px 0 var(--pen)}
+.city .ttl span{font:600 clamp(.6rem,1.5vw,.85rem) var(--mono);letter-spacing:.2em;color:var(--fg);text-shadow:2px 2px 0 var(--pen)}
+body[data-zone="map"] .trace,body[data-zone="map"] .card,body[data-zone="map"] .net{border:3px solid var(--pen)}
+body[data-zone="map"] .net{background:linear-gradient(#ffffff10 1.5px,transparent 1.5px) 0 0/48px 48px,linear-gradient(90deg,#ffffff10 1.5px,transparent 1.5px) 0 0/48px 48px,linear-gradient(180deg,#232b5c,#4a4a92 70%,#8a6aa8)}
+body[data-zone="map"] .hop{border-bottom:2px solid var(--pen)}
+body[data-zone="map"] .hop .n{background:#3a4580;color:var(--mut);border:2px solid var(--pen);border-radius:6px;text-align:center;font:400 .95rem/1.9 var(--display)}
+body[data-zone="map"] .hop.part,body[data-zone="map"] .hop.part:hover{background:linear-gradient(180deg,#f8d98f,#f2c46d);--fg:#1b2142;--mut:#6b4a24;--syn:#8a2b1f;color:#1b2142}
+body[data-zone="map"] .hop.part .n,body[data-zone="map"] .hop.done .n{background:var(--noren);color:#fff}
+body[data-zone="map"] .hop.done{background:#2a3266}
+body[data-zone="map"] .pager{border-color:var(--noren)}
+
+/* Lessons and stories: dusk grid sky, content on a cloud panel */
+body[data-zone="lesson"]{background:
+  linear-gradient(#ffffff12 1.5px,transparent 1.5px) 0 0/56px 56px,
+  linear-gradient(90deg,#ffffff12 1.5px,transparent 1.5px) 0 0/56px 56px,
+  linear-gradient(180deg,#232b5c 0%,#4b4a93 55%,#9a6fae 85%,#e59ab3 100%) fixed;background-attachment:fixed}
+body[data-zone="lesson"]::after{content:"";position:fixed;right:5vw;top:96px;width:64px;height:64px;border-radius:50%;box-shadow:-13px 9px 0 0 var(--moon);filter:drop-shadow(0 0 14px #e59ab3aa);pointer-events:none;z-index:0}
+body[data-zone="lesson"] main{position:relative;z-index:1;margin-top:40px;margin-bottom:40px;padding-block:28px 40px;background:#1a2150f2;border:3px solid var(--pen);border-radius:22px;box-shadow:0 -6px 0 0 var(--dusk),0 -9px 0 0 var(--pen),0 30px 60px -30px #000c}
+body[data-zone="lesson"] :is(.q,.dgi,.dg,.sc,.story,.card,.m,.term){border:2px solid var(--pen)}
+body[data-zone="lesson"] .say{border-left-color:var(--dusk)}
+body[data-zone="lesson"] .say::before{color:var(--dusk)}
+@media (max-width:700px){body[data-zone="lesson"]::after{display:none}body[data-zone="lesson"] main{margin-top:18px;border-radius:16px}}
+
+/* Code Lab and Drills: lantern and ink */
+body[data-zone="ink"] :is(.m,.card,.sc,.brief,.tres,.cov){
+  --fg:#1b2142;--mut:#5d5677;--panel:#f6e7c8;--panel2:#efdcb5;--line:#c9a96b;--syn:#a8392b;--ack:#23704f;--rst:#b8283d;--info:#2c4aa8;
+  background:var(--paper);color:var(--fg);border:3px solid var(--pen);box-shadow:5px 5px 0 var(--pen)}
+body[data-zone="ink"] .brief{padding:18px;border-radius:12px}
+body[data-zone="ink"] .brief .fx{border:2px dashed var(--line);background:#efdcb5}
+body[data-zone="ink"] .tres{border-radius:10px}
+body[data-zone="ink"] .tres.good{border-left:10px solid #23704f}
+body[data-zone="ink"] .tres.bad{border-left:10px solid var(--noren)}
+body[data-zone="ink"] .m{border-radius:10px}
+body[data-zone="ink"] .m:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--pen)}
+body[data-zone="ink"] .m.done{background:linear-gradient(180deg,#f8d98f,#f2c46d)}
+body[data-zone="ink"] .cov{box-shadow:2px 2px 0 var(--pen);border-width:2px}
+body[data-zone="ink"] label[for="led"]{display:block;margin:0;padding:8px 14px 10px;background:var(--noren);color:#fff;font:400 1rem var(--display);letter-spacing:.06em;border:3px solid var(--pen);border-bottom:0;border-radius:12px 12px 0 0;
+  background-image:linear-gradient(90deg,transparent 24%,#0004 24% 25%,transparent 25% 49%,#0004 49% 50%,transparent 50% 74%,#0004 74% 75%,transparent 75%)}
+body[data-zone="ink"] .ed{border:3px solid var(--pen);border-radius:0 0 12px 12px;box-shadow:inset 0 0 0 2px #f2c46d22,0 0 40px -12px #f2c46d66}
+body[data-zone="ink"] .btn{border:3px solid var(--pen);border-radius:999px;box-shadow:3px 3px 0 var(--pen);font:400 .95rem var(--display);padding:8px 16px;color:#1b2142}
+body[data-zone="ink"] .btn.sm{font-size:.82rem;padding:5px 12px}
+body[data-zone="ink"] .btn:not(.ghost){background:#f2c46d}
+body[data-zone="ink"] .btn.ghost{background:var(--paper)}
+body[data-zone="ink"] .btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--pen)}
+body[data-zone="ink"] .chip{border:2px solid var(--pen);background:#2a3266;color:var(--fg)}
+body[data-zone="ink"] .chip[aria-pressed="true"]{background:var(--syn);color:#1b2142}
+body[data-zone="ink"] .tab[aria-selected="true"]{background:var(--paper);color:#1b2142;border:3px solid var(--pen);border-bottom:0;border-radius:10px 10px 0 0}
+body[data-zone="ink"] .tabs{border-bottom:3px solid var(--pen)}
+body[data-zone="ink"] .tab .c{color:#23704f}
+
+/* Remember */
+.rm-top{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:760px){.rm-top{grid-template-columns:minmax(0,1fr)}}
+.rm-go h3{font-size:1.35rem}
+.lboxes{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center}
+.lbox svg{width:26px;height:32px;display:block;margin:0 auto}
+.lbox b{display:block;font:400 1rem var(--display)}
+.lbox small{display:block;font:500 .62rem var(--mono);color:var(--mut);line-height:1.2}
+.rm-bar{display:flex;align-items:center;gap:12px;margin-bottom:16px;max-width:720px}
+.rm-bar i{flex:1;height:12px;border:3px solid var(--pen);border-radius:99px;background:#2a3266;overflow:hidden;display:block}
+.rm-bar i b{display:block;height:100%;background:var(--syn);transition:width .3s}
+.rm-card{min-height:340px;align-content:start}
+.rm-term{font-size:clamp(1.6rem,5vw,2.2rem)}
+.rm-mean{font-size:1.15rem;margin:0}
+.rm-sent{font-size:1.05rem;margin:0;line-height:1.7}
+.rm-blank{display:inline-block;min-width:4.5em;border-bottom:3px solid var(--syn);text-align:center;font-weight:600}
+.rm-blank.filled{color:var(--ack)}
+.rm-opts{display:grid;grid-template-columns:1fr;gap:10px}
+.rm-opts.four{grid-template-columns:repeat(2,minmax(0,1fr))}
+.rm-opts.chunks{display:flex;flex-wrap:wrap}
+.rm-opts.letters{display:flex;flex-wrap:wrap;gap:8px}
+.rm-opts.letters .tile{width:46px;height:46px;padding:0;text-align:center;font:400 1.15rem var(--display)}
+.tile{text-align:left;background:#fffaf0;color:var(--pen);border:3px solid var(--pen);border-radius:12px;padding:11px 14px;box-shadow:3px 3px 0 var(--pen);font:500 1rem/1.35 var(--body);transition:transform .08s}
+.tile:hover:not(:disabled){transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--pen)}
+.tile:active:not(:disabled){transform:translate(2px,2px);box-shadow:1px 1px 0 var(--pen)}
+.tile:disabled{opacity:.45;cursor:default}
+.tile.ok{background:#bfe8d3;opacity:1}
+.tile.no{background:#f6c0c6;opacity:1;animation:shake .3s}
+.tile.sel{background:#f2c46d}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.rm-match{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:12px}
+.rm-match>div{display:grid;gap:10px;align-content:start}
+.rm-built{min-height:3.2em;border:2px dashed var(--line);border-radius:10px;padding:10px;font-size:1.02rem;line-height:1.7}
+.rm-built .chunk{background:#fffaf0;border:2px solid var(--pen);border-radius:8px;padding:2px 7px;margin:2px 0;display:inline-block}
+.rm-ph{color:var(--mut)}
+.slots{display:flex;flex-wrap:wrap;gap:6px}
+.slot{width:38px;height:44px;border-bottom:4px solid var(--pen);display:grid;place-items:center;font:400 1.3rem var(--display)}
+.slot.full{color:var(--ack)}
+.sp{width:16px}
+.rm-fb{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border:3px solid var(--pen);border-radius:12px;padding:10px 14px}
+.rm-fb.ok{background:#bfe8d3}
+.rm-fb.no{background:#f6d2d6}
+@media (prefers-reduced-motion:reduce){.tile.no{animation:none}}
+/* Account chip */
+.acct{font:500 .74rem var(--mono);text-decoration:none;color:var(--mut);border:1px solid var(--line);padding:3px 9px;border-radius:99px;white-space:nowrap}
+.acct::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#6f78ad;margin-right:6px;vertical-align:1px}
+.acct.synced{color:var(--ack)}.acct.synced::before{background:var(--ack)}
+.acct.syncing::before,.acct.error::before{background:var(--syn)}
+/* Certs */
+a.cert-card{text-decoration:none;color:inherit}
+.cert-card.soon{opacity:.6}
+.cert-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:6px}
+.cert-facts div{background:var(--paper);color:var(--pen);border:3px solid var(--pen);border-radius:10px;padding:10px 12px;box-shadow:4px 4px 0 var(--pen);display:grid;gap:2px}
+.cert-facts .kicker{color:#a8392b}
+.cert-notes{margin-top:10px}
+.cert-notes .lesson{max-width:none;padding:6px 4px 4px}
+.cert-notes .lesson ul{margin:.3em 0}
+.exgrid{display:flex;flex-wrap:wrap;gap:5px;margin-top:14px}
+.exgrid button{width:36px;height:32px;border:2px solid var(--pen);border-radius:6px;background:#2a3266;color:var(--fg);font:500 .78rem var(--mono)}
+.exgrid button.done{background:#4b5596}
+.exgrid button.flg{box-shadow:inset 0 -4px 0 #f2c46d}
+.exgrid button.cur{background:#f2c46d;color:var(--pen)}
+.pq-rows{display:grid;gap:10px}
+.pq-row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 8.5em;gap:10px;align-items:center;border-bottom:1px dashed var(--line);padding-bottom:8px}
+.pq-row label{font-weight:500}
+.pq-row .fld{background:#fffaf0;color:var(--pen);border:2px solid var(--pen)}
+.pq-mark{min-width:1.5em;font-size:.88rem}
+.pq-mark .good,.pq-key .good{color:#23704f;font-weight:700}
+.pq-mark .bad,.pq-key .bad{color:#b8283d;font-weight:600}
+.pq-key{margin:10px 0 0;padding-left:1.4em}
+@media (max-width:640px){.pq-row{grid-template-columns:minmax(0,1fr)}}
+</style>
+
+<header class="bar"><div class="wrap">
+  <a class="brand" href="#map" title="As in 99.99% uptime"><b>Nines</b></a>
+  <span class="rank" id="rank">Tier 1 Support</span>
+  <a class="acct local" id="acct" href="#account" title="Account and sync">This browser</a>
+  <span class="xp"><span id="xpn">0 XP</span><i><b id="xpb"></b></i></span>
+  <nav class="row" aria-label="Sections" style="gap:14px">
+  <a class="navlink" href="#map">Quest</a>
+  <a class="navlink" href="#remember">Remember</a>
+  <a class="navlink" href="#drills">Drills</a>
+  <a class="navlink" href="#codelab">Code Lab</a>
+  <a class="navlink" href="#certs">Certs</a>
+  <a class="navlink" href="#stories">Stories</a>
+  <a class="navlink" href="#cheatsheet">Cheat sheet</a>
+  </nav>
+</div></header>
+<main class="wrap" id="app"></main>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha512-dLxUelApnYxpLt6K2iomGngnHO83iUvZytA3YjDUCjT0HDOHKXnVYdf3hU4JjM8uEhxf9nD1/ey98U3t2vZ0qQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="data.js"></script>
+<script src="cards.js"></script>
+<script src="term.js"></script>
+<script src="shell.js"></script>
+<script src="lab.js"></script>
+<script src="night.js"></script>
+<script src="terms.js"></script>
+<script src="certs/aplus1.js"></script>
+<script src="certs/aplus2.js"></script>
+<script src="certs/aplus1-more.js"></script>
+<script src="certs/aplus2-more.js"></script>
+<script src="certs/rhcsa.js"></script>
+<script src="certs/rhcsa-more.js"></script>
+<!-- Packs are optional overlays. company.*.js is public information about one employer.
+     personal.js is private, git-ignored, and simply absent in a public checkout. -->
+<script src="packs/personal.js"></script>
+<script>
+(function(){
+"use strict";
+var $=function(s,r){return (r||document).querySelector(s);};
+var app=$("#app");
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+
+/* ---------- packs: core + optional company + optional personal + imported drill packs ---------- */
+var CO=window.PACK_COMPANY||{},ME=window.PACK_PERSONAL||{},IMPKEY="packetquest.packs",IMPORTED=[];
+function clean(s,max){return typeof s==="string"?s.slice(0,max||2000):"";}
+/* An imported pack is untrusted text: keep only short plain strings, and always render it through esc(). */
+function sanePack(p){if(!p||typeof p!=="object"||!Array.isArray(p.cards))return null;var cards=[];
+  p.cards.slice(0,500).forEach(function(c){var q,s,a,t;if(Array.isArray(c)){t=c[0];q=c[1];s=c[2];a=c[3];}else if(c&&typeof c==="object"){t=c.topic;q=c.q||c.question;s=c.say||c.first;a=c.add||c.then;}
+    q=clean(q,400);s=clean(s,1200);a=clean(a,3000);if(q&&(s||a))cards.push({t:clean(String(t==null?"":t),60),q:q,s:s,a:a});});
+  return cards.length?{name:clean(p.name,60)||"Imported pack",cards:cards}:null;}
+try{var rp=JSON.parse(localStorage.getItem(IMPKEY)||"[]");if(Array.isArray(rp))rp.forEach(function(p){var s=sanePack(p);if(s)IMPORTED.push(s);});}catch(e){}
+function saveImported(){try{localStorage.setItem(IMPKEY,JSON.stringify(IMPORTED));}catch(e){}}
+var CORE_N=CARDS.length;
+(CO.cards||[]).forEach(function(c){CARDS.push([c[0],c[1],c[2],c[3],"co"]);});
+(ME.cards||[]).forEach(function(c){CARDS.push([c[0],c[1],c[2],c[3],"me"]);});
+var IMP_AT=CARDS.length;
+function loadImportedCards(){CARDS.length=IMP_AT;IMPORTED.forEach(function(p,pi){p.cards.forEach(function(c){CARDS.push([-1,c.q,c.s,c.a,"imp",pi,c.t]);});});}
+loadImportedCards();
+ASKS=ASKS.concat(CO.asks||[],ME.asks||[]);SHEET=SHEET.concat(ME.sheet||[]);
+function ck(i){var s=CARDS[i][1],h=5381;for(var k=0;k<s.length;k++)h=((h<<5)+h+s.charCodeAt(k))|0;return "k"+(h>>>0).toString(36);}
+
+/* ---------- progress (this browser only) ---------- */
+var KEY="packetquest.v1", S={quiz:{},mis:{},cards:{},notes:{},asks:[],mock:0};
+try{var raw=localStorage.getItem(KEY); if(raw){var o=JSON.parse(raw); for(var k in o) S[k]=o[k];}}catch(e){}
+if(!S.v2){S.cards={};S.asks=[];S.v2=1;}
+S.lab=S.lab||{};S.code=S.code||{};S.srs=S.srs||{};S.rm=S.rm||{};S.cert=S.cert||{};S.stories=Array.isArray(S.stories)?S.stories:[];
+if(!S.iv||typeof S.iv!=="object"){S.iv={};var piv=ME.interview||{};if(piv.label)S.iv.role=String(piv.label);if(piv.when)S.iv.when=String(piv.when);}  /* card keys changed from positions to stable hashes */
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){} hud();acctQueue();}
+
+/* ---------- Account: optional sync of progress to the viewer's own private store ----------
+   Identity comes from the platform (Claude sign-in); this page never sees or stores a password.
+   Progress lives at data/users/<id>/progress, which only that person can read or write.
+   Everything loaded from the store is treated as untrusted: validated and size-capped before use.
+   The browser copy stays the source of truth for rendering, so the app works fully offline or signed out. */
+var SYNCKEY="nines.sync",ACCT={state:"local",ref:null,last:"",timer:null,busy:false,again:false,msg:"",unsub:null};
+function syncWanted(){try{return localStorage.getItem(SYNCKEY)!=="off";}catch(e){return true;}}
+function setSyncWanted(on){try{if(on)localStorage.removeItem(SYNCKEY);else localStorage.setItem(SYNCKEY,"off");}catch(e){}}
+function isObj(o){return o&&typeof o==="object"&&!Array.isArray(o);}
+function cleanMap(o,val,max){var out={};if(!isObj(o))return out;Object.keys(o).slice(0,max||5000).forEach(function(k){if(k.length>200||k==="__proto__"||k==="constructor"||k==="prototype")return;var v=val(o[k]);if(v!==undefined)out[k]=v;});return out;}
+function num(v){return typeof v==="number"&&isFinite(v)?v:undefined;}
+function str(n){return function(v){return typeof v==="string"?v.slice(0,n):undefined;};}
+/* Keep only the shape this app writes. Anything else is dropped. */
+function sanitizeState(o){if(!isObj(o))return null;var s={};
+  s.quiz=cleanMap(o.quiz,num,50);s.mis=cleanMap(o.mis,num,500);s.cards=cleanMap(o.cards,num,5000);s.notes=cleanMap(o.notes,str(5000),500);
+  s.asks=Array.isArray(o.asks)?o.asks.filter(function(x){return typeof x==="number";}).slice(0,3):[];s.mock=num(o.mock)||0;s.v2=1;
+  s.lab=cleanMap(o.lab,num,500);s.code=cleanMap(o.code,str(20000),200);
+  s.srs=cleanMap(o.srs,function(r){return isObj(r)&&num(r.b)!=null&&num(r.d)!=null?{b:Math.max(0,Math.min(6,r.b|0)),d:r.d,n:num(r.n)||0}:undefined;},20000);
+  s.rm=isObj(o.rm)?{day:str(20)(o.rm.day)||"",streak:num(o.rm.streak)||0,sessions:num(o.rm.sessions)||0}:{};
+  s.cert=cleanMap(o.cert,function(c){if(!isObj(c))return undefined;return {q:cleanMap(c.q,num,5000),ex:Array.isArray(c.ex)?c.ex.filter(isObj).slice(-30).map(function(e){return {s:num(e.s)||0,d:str(20)(e.d)||""};}):[],pbq:cleanMap(c.pbq,num,500),mock:cleanMap(c.mock,num,50)};},20);
+  s.iv=cleanMap(o.iv,str(1000),10);
+  s.stories=Array.isArray(o.stories)?o.stories.filter(isObj).slice(0,100).map(function(x){return cleanMap(x,str(3000),10);}):[];
+  s.resetAt=num(o.resetAt)||0;return s;}
+/* Merge two copies without losing progress: scores take the best, completions take the union,
+   spaced-repetition items keep the most-reviewed copy. A newer "reset progress" wins outright. */
+function mergeState(a,b){if(!b)return a;if(!a)return b;
+  if((b.resetAt||0)>(a.resetAt||0))return b;if((a.resetAt||0)>(b.resetAt||0))return a;
+  var m=JSON.parse(JSON.stringify(a));
+  function max(k){m[k]=m[k]||{};for(var x in b[k])m[k][x]=Math.max(m[k][x]||0,b[k][x]);}
+  function fill(k){m[k]=m[k]||{};for(var x in b[k])if(!(x in m[k]))m[k][x]=b[k][x];}
+  max("quiz");max("mis");max("lab");max("cards");fill("notes");fill("code");
+  m.srs=m.srs||{};for(var k in b.srs){var p=m.srs[k],q=b.srs[k];if(!p||q.n>p.n||(q.n===p.n&&q.d>p.d))m.srs[k]=q;}
+  m.mock=Math.max(m.mock||0,b.mock||0);if(!(m.asks||[]).length)m.asks=b.asks||[];
+  if(!Object.keys(m.iv||{}).length)m.iv=b.iv||{};if(!(m.stories||[]).length)m.stories=b.stories||[];
+  var dn=function(s){var p=String(s||"").split("-").map(Number);return p.length===3&&p.every(isFinite)?p[0]*10000+p[1]*100+p[2]:0;};
+  var ra=m.rm||{},rb=b.rm||{};m.rm=dn(rb.day)>dn(ra.day)?{day:rb.day,streak:rb.streak,sessions:Math.max(ra.sessions||0,rb.sessions||0)}:{day:ra.day,streak:ra.streak,sessions:Math.max(ra.sessions||0,rb.sessions||0)};
+  m.cert=m.cert||{};for(var c in b.cert){var x=m.cert[c]||{q:{},ex:[],pbq:{},mock:{}},y=b.cert[c];
+    for(var qk in y.q)if(!(qk in x.q))x.q[qk]=y.q[qk];
+    var seen={};x.ex=(x.ex||[]).concat(y.ex||[]).filter(function(e){var h=e.d+"|"+e.s;if(seen[h])return false;seen[h]=1;return true;}).slice(-30);
+    x.pbq=x.pbq||{};for(var pk in y.pbq)x.pbq[pk]=Math.max(x.pbq[pk]||0,y.pbq[pk]);x.mock=x.mock||{};for(var mk in y.mock)x.mock[mk]=Math.max(x.mock[mk]||0,y.mock[mk]);m.cert[c]=x;}
+  return m;}
+function acctQueue(){if(ACCT.state!=="synced"&&ACCT.state!=="syncing")return;clearTimeout(ACCT.timer);ACCT.timer=setTimeout(acctPush,1500);}
+function acctPush(){var sb=ACCT.mode==="supabase";if((sb?!ACCT.user:!ACCT.ref)||!syncWanted())return;if(ACCT.busy){ACCT.again=true;return;}
+  var body=JSON.stringify(S);if(body===ACCT.last)return;
+  if(body.length>240000){ACCT.msg="Your progress is too large to sync (over 240 KB). Clear some saved Code Lab drafts.";acctUI();return;}
+  ACCT.busy=true;ACCT.state="syncing";acctUI();
+  if(sb){SB.from("progress").upsert({user_id:ACCT.user.id,data:JSON.parse(body),updated_at:new Date().toISOString()}).then(function(r){
+      if(r.error){ACCT.state="error";ACCT.msg=sbErr(r.error);}else{ACCT.last=body;ACCT.state="synced";ACCT.msg="";}
+      ACCT.busy=false;acctUI();if(ACCT.again){ACCT.again=false;acctPush();}});return;}
+  ACCT.ref.set({v:1,at:Date.now(),s:JSON.parse(body)}).then(function(){ACCT.last=body;ACCT.state="synced";ACCT.msg="";},function(e){
+    ACCT.state=e&&e.code==="invalid_argument"?"readonly":"error";ACCT.msg=e&&e.code==="invalid_argument"?"This page is shared with you as view-only, so progress stays in this browser.":e&&e.code==="quota_exceeded"?"The sync store is full.":"Could not reach the sync store. Progress is safe in this browser and will sync later.";
+    if(ACCT.state==="error")setTimeout(function(){if(ACCT.state==="error"){ACCT.state="synced";acctPush();}},30000);}).then(function(){ACCT.busy=false;acctUI();if(ACCT.again){ACCT.again=false;acctPush();}});}
+function applyRemote(data){var r=data&&isObj(data.s)?sanitizeState(data.s):null;if(!r)return false;
+  var before=JSON.stringify(S),m=mergeState(sanitizeState(S)||S,r);
+  ["v2"].forEach(function(k){m[k]=1;});for(var k in S)if(!(k in m))m[k]=S[k];
+  if(JSON.stringify(m)===before)return false;
+  S=m;try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}hud();return true;}
+/* ---- Supabase backend (standalone site only): Google, GitHub or email-link sign-in, row-level security per user ----
+   Config is public by design: the project URL and the publishable key. The secret key never ships. */
+var SB=null;
+function sbStart(){var C=window.NINES_CONFIG;ACCT.mode="supabase";ACCT.providers={email:true};
+  try{SB=window.supabase.createClient(C.supabaseUrl,C.supabaseKey,{auth:{flowType:"pkce",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:"nines.auth"}});}catch(e){ACCT.state="local";ACCT.msg="Sign-in could not start.";acctUI();return;}
+  fetch(C.supabaseUrl+"/auth/v1/settings",{headers:{apikey:C.supabaseKey}}).then(function(r){return r.json();}).then(function(s){var x=s&&s.external||{};ACCT.providers={google:!!x.google,github:!!x.github,email:!!x.email};acctUI();}).catch(function(){});
+  ACCT.state="signedout";acctUI();
+  SB.auth.onAuthStateChange(function(ev,session){
+    if(/[?&](code|error)=/.test(location.search)){var back="";try{back=sessionStorage.getItem("nines.return")||"";sessionStorage.removeItem("nines.return");}catch(e){}history.replaceState(null,"",location.pathname+(back||location.hash||""));if(back)route();}
+    if(session&&session.user){var first=!ACCT.user||ACCT.user.id!==session.user.id;ACCT.user={id:session.user.id,email:session.user.email||""};if(first){if(syncWanted()){ACCT.state="syncing";acctUI();sbPull();}else{ACCT.state="paused";acctUI();}}}
+    else{ACCT.user=null;ACCT.state="signedout";ACCT.last="";acctUI();}});
+  var lastPull=0;document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible"&&ACCT.user&&syncWanted()&&Date.now()-lastPull>30000){lastPull=Date.now();sbPull();}});}
+function sbErr(e){var c=e&&(e.code||e.status);return c==="42501"||c===401||c===403?"The database refused the write. The table's access grant is missing; see the setup notes.":c===429||c==="over_email_send_rate_limit"?"Too many attempts. Wait a few minutes and try again.":"Could not reach the sync service. Progress is safe in this browser.";}
+function sbPull(){if(!SB||!ACCT.user)return;SB.from("progress").select("data").eq("user_id",ACCT.user.id).maybeSingle().then(function(r){
+    if(r.error){ACCT.state="error";ACCT.msg=sbErr(r.error);acctUI();return;}
+    var changed=r.data?applyRemote({s:r.data.data}):false;if(r.data)ACCT.last=JSON.stringify(sanitizeState(r.data.data));
+    ACCT.state="synced";ACCT.msg="";if(changed&&!document.querySelector("#rmc,#cmd,#led,.pq-rows"))route();acctPush();acctUI();});}
+function sbSignIn(provider){try{sessionStorage.setItem("nines.return",location.hash||"#map");}catch(e){}
+  return SB.auth.signInWithOAuth({provider:provider,options:{redirectTo:location.origin+location.pathname}}).then(function(r){if(r.error){ACCT.msg=sbErr(r.error);acctUI();}});}
+function sbEmail(addr){try{sessionStorage.setItem("nines.return",location.hash||"#map");}catch(e){}
+  return SB.auth.signInWithOtp({email:addr,options:{emailRedirectTo:location.origin+location.pathname,shouldCreateUser:true}});}
+function acctStart(){if(window.NINES_CONFIG&&window.supabase&&window.NINES_CONFIG.supabaseUrl){sbStart();return;}
+  if(!window.claude||typeof window.claude.use!=="function"){ACCT.state="local";acctUI();return;}
+  Promise.all([window.claude.use("user"),window.claude.use("db")]).then(function(r){var u=r[0],db=r[1];
+    if(!u||!db){ACCT.state="local";acctUI();return;}
+    return u.id().then(function(id){if(!id){ACCT.state="signedout";acctUI();return;}
+      ACCT.ref=db.doc("data/users/"+id+"/progress");
+      if(!syncWanted()){ACCT.state="paused";acctUI();return;}
+      acctConnect();});}).catch(function(){ACCT.state="local";acctUI();});}
+function acctConnect(){ACCT.state="syncing";acctUI();var first=true,slow=setTimeout(function(){if(first){ACCT.msg="The sync store is slow to answer. Your progress is safe in this browser.";acctUI();}},10000);
+  ACCT.unsub=ACCT.ref.onSnapshot(function(snap){if(snap.metadata&&snap.metadata.hasPendingWrites)return;
+      if(first&&!(snap.metadata&&snap.metadata.fromCache)){first=false;clearTimeout(slow);ACCT.msg="";}
+      var changed=snap.exists?applyRemote(snap.data()):false;
+      if(ACCT.state==="syncing")ACCT.state="synced";
+      if(changed&&!/^#?(cert-|level-)/.test(location.hash)&&!document.querySelector("#rmc,#cmd,#led,.pq-rows"))route();
+      acctPush();acctUI();},
+    function(e){clearTimeout(slow);ACCT.state=e&&e.code==="revoked"?"local":"error";ACCT.msg="Sync stopped for this visit. Progress is safe in this browser.";acctUI();});}
+function acctStop(){if(ACCT.unsub){ACCT.unsub();ACCT.unsub=null;}clearTimeout(ACCT.timer);}
+function dataCard(){return '<div class="card"><h3>Your data</h3><p>Download everything this app stores about you as a JSON file, or load a file you exported before. Loading merges; it never deletes progress.</p><div class="row"><button class="btn sm" id="acexp">Export my data</button><label class="btn ghost sm" style="cursor:pointer">Import a file<input type="file" id="acimp" accept=".json,application/json" hidden></label></div><p id="acmsg" role="status"></p></div>';}
+function wireData(){var m=function(){return $("#acmsg");};
+  var e=$("#acexp");if(e)e.onclick=function(){var data=JSON.stringify({app:"nines",version:1,exported:new Date().toISOString(),progress:S},null,2);
+    var use=window.claude&&typeof window.claude.use==="function"?window.claude.use("downloads"):Promise.resolve(null);
+    use.then(function(d){if(d)return d.save({filename:"nines-progress.json",data:data}).then(function(){m().textContent="Saved.";},function(er){m().textContent=er&&er.code==="declined"?"Not saved.":"Saving is not available here.";});
+      try{var u=URL.createObjectURL(new Blob([data],{type:"application/json"})),a=document.createElement("a");a.href=u;a.download="nines-progress.json";document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u);},5000);m().textContent="Download started.";}catch(er){m().textContent="Saving is not available here.";}});};
+  var imp=$("#acimp");if(imp)imp.onchange=function(){var f=this.files&&this.files[0];if(!f)return;if(f.size>1048576){m().textContent="That file is over 1 MB, which is too large to be a Nines export.";return;}
+    var rd=new FileReader();rd.onload=function(){var o=null;try{o=JSON.parse(String(rd.result));}catch(er){}var r=o&&o.app==="nines"?sanitizeState(o.progress):null;
+      if(!r){m().textContent="That is not a Nines export file.";return;}S=mergeState(sanitizeState(S)||S,r);S.v2=1;save();m().textContent="Merged into your progress.";};rd.readAsText(f);};}
+function sbAccountPage(){var u=ACCT.user,P=ACCT.providers||{},on=ACCT.state==="synced"||ACCT.state==="syncing"||ACCT.state==="error";
+  var privacy='<div class="card"><h3>What is stored, and where</h3><p><b>In this browser:</b> all progress, your notes and stories, and your sign-in session.</p><p><b>In the Nines database, only while you are signed in with sync on:</b> one row holding that progress, readable and writable only by your account. The database enforces it, not this page.</p><p><b>Sign-in</b> is handled by Supabase with Google, GitHub or a one-time email link. Nines never sees a password. Your email address is kept by the sign-in service so you can sign in again.</p></div>';
+  if(!u){var any=P.google||P.github||P.email;
+    app.innerHTML='<div class="lvh" id="acx"><span class="kicker">Account</span><h1>Sign in to sync your progress</h1><p class="lede">Optional. Without an account everything still works and stays in this browser. With one, your progress follows you to every device.</p>'+(ACCT.msg?'<p class="lede" style="color:var(--syn)">'+esc(ACCT.msg)+'</p>':'')+'</div>'+
+     '<div class="mlist" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))"><div class="card"><h3>Sign in</h3>'+
+     (P.google?'<div class="row" style="margin:.5em 0"><button class="btn" id="sbg">Continue with Google</button></div>':'')+
+     (P.github?'<div class="row" style="margin:.5em 0"><button class="btn" id="sbh">Continue with GitHub</button></div>':'')+
+     (P.email?'<form id="sbe" class="row" style="margin-top:.8em"><label class="dgl" for="sbmail" style="width:100%;margin:0">'+(P.google||P.github?"Or get a sign-in link by email":"Get a sign-in link by email")+'</label><input class="fld" id="sbmail" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com" style="flex:1;min-width:0"><button class="btn ghost" type="submit">Email me a link</button></form><p id="sbem" role="status" style="font-size:.9rem"></p>':'')+
+     (any?'':'<p>Sign-in is not set up on this site yet.</p>')+'</div>'+dataCard()+privacy+'</div>';
+    var g=$("#sbg");if(g)g.onclick=function(){sbSignIn("google");};var h=$("#sbh");if(h)h.onclick=function(){sbSignIn("github");};
+    var f=$("#sbe");if(f)f.onsubmit=function(e){e.preventDefault();var a=$("#sbmail").value.trim(),msg=$("#sbem"),btn=f.querySelector("button");
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a)){msg.textContent="That doesn't look like an email address.";return;}
+      btn.disabled=true;msg.textContent="Sending…";sbEmail(a).then(function(r){btn.disabled=false;
+        msg.textContent=r.error?sbErr(r.error):"If that address can sign in, a link is on its way. Open it in this same browser. It expires soon and works once.";});};
+    wireData();return;}
+  app.innerHTML='<div class="lvh" id="acx"><span class="kicker">Account</span><h1>'+(on?"Your progress syncs to your account":"Sync is turned off")+'</h1><p class="lede">Signed in as <b id="sbwho"></b>.</p>'+(ACCT.msg?'<p class="lede" style="color:var(--syn)">'+esc(ACCT.msg)+'</p>':'')+'</div>'+
+   '<div class="mlist" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">'+
+   '<div class="card"><h3>Sync</h3><p>'+(on?"On. Changes save a moment after you make them, and other devices catch up when you return to them.":"Off. Nothing is sent from this browser.")+'</p><div class="row">'+(on?'<button class="btn sm" id="acsync">Sync now</button><button class="btn ghost sm" id="acoff">Turn sync off</button>':'<button class="btn sm" id="acon">Turn sync on</button>')+'</div></div>'+
+   '<div class="card"><h3>Session</h3><p>Sign out here, or everywhere you are signed in, for example after using a shared computer.</p><div class="row"><button class="btn sm" id="sbout">Sign out</button><button class="btn ghost sm" id="sball">Sign out everywhere</button></div></div>'+
+   dataCard()+
+   '<div class="card"><h3>Delete</h3><p><b>Delete synced progress</b> removes your row from the database and turns sync off. <b>Delete account</b> also removes your sign-in, permanently. This browser keeps its own copy either way.</p><div class="row"><button class="btn ghost sm g-no" id="sbdel">Delete synced progress</button><button class="btn ghost sm g-no" id="sbkill">Delete account</button></div><p id="sbdm" role="status"></p></div>'+privacy+'</div>';
+  $("#sbwho").textContent=u.email||"your account";
+  var b=function(id,fn){var e=$("#"+id);if(e)e.onclick=fn;};
+  b("acsync",function(){ACCT.last="";sbPull();toast("Syncing");});
+  b("acoff",function(){setSyncWanted(false);ACCT.state="paused";acctUI();});
+  b("acon",function(){setSyncWanted(true);ACCT.state="syncing";acctUI();sbPull();});
+  b("sbout",function(){SB.auth.signOut({scope:"local"}).then(function(){toast("Signed out");});});
+  b("sball",function(){SB.auth.signOut({scope:"global"}).then(function(){toast("Signed out everywhere");});});
+  var a1=false;b("sbdel",function(){if(!a1){a1=true;this.textContent="Click again to delete it";return;}setSyncWanted(false);
+    SB.from("progress").delete().eq("user_id",u.id).then(function(r){$("#sbdm").textContent=r.error?sbErr(r.error):"Synced progress deleted.";if(!r.error){ACCT.state="paused";ACCT.last="";acctUI();}});});
+  var a2=false;b("sbkill",function(){if(!a2){a2=true;this.textContent="Click again: this cannot be undone";return;}this.disabled=true;
+    SB.rpc("delete_my_account").then(function(r){if(r.error){$("#sbdm").textContent="Could not delete the account: "+(r.error.code==="PGRST202"?"the delete function is not installed in the database yet.":sbErr(r.error));return;}
+      setSyncWanted(true);SB.auth.signOut({scope:"local"}).then(function(){toast("Account deleted");});});});
+  wireData();}
+var ACCT_LABEL={local:"This browser",signedout:"Sign in",paused:"Sync off",syncing:"Syncing…",synced:"Synced",readonly:"This browser",error:"Sync waiting"};
+function acctUI(){var a=$("#acct");if(a){a.textContent=ACCT_LABEL[ACCT.state]||"Account";a.className="acct "+ACCT.state;}if(location.hash==="#account")accountPage();}
+function accountPage(){if(ACCT.mode==="supabase"){sbAccountPage();return;}
+  var on=ACCT.state==="synced"||ACCT.state==="syncing"||ACCT.state==="error",can=!!ACCT.ref;
+  var head={synced:"Your progress syncs to your account",syncing:"Syncing your progress…",error:"Sync is waiting to reconnect",paused:"Sync is turned off",readonly:"Progress stays in this browser",signedout:"Sign in to Claude to sync",local:"Progress stays in this browser"}[ACCT.state];
+  var why={synced:"Sign in to Claude on any device, open this page, and your quiz scores, labs, Remember decks, cert results, stories and interview notes are there.",syncing:"",error:"",paused:"Your progress is only in this browser. Turn sync on to save it to your account again.",readonly:"",signedout:"This page knows nobody is signed in, so nothing leaves this browser.",local:"Accounts work when this page is opened inside Claude while signed in. Here (for example the standalone or public build) everything stays in this browser."}[ACCT.state];
+  app.innerHTML='<div class="lvh" id="acx"><span class="kicker">Account</span><h1>'+esc(head)+'</h1><p class="lede">'+esc(why||"")+'</p>'+(ACCT.msg?'<p class="lede" style="color:var(--syn)">'+esc(ACCT.msg)+'</p>':'')+'</div>'+
+   '<div class="mlist" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">'+
+   (can?'<div class="card"><h3>Sync</h3><p>'+(on?"On. Changes save a moment after you make them.":"Off. Nothing is sent from this browser.")+'</p><div class="row">'+(on?'<button class="btn sm" id="acsync">Sync now</button><button class="btn ghost sm" id="acoff">Turn sync off</button>':'<button class="btn sm" id="acon">Turn sync on</button>')+'</div></div>':'')+
+   '<div class="card"><h3>Your data</h3><p>Download everything this app stores about you as a JSON file, or load a file you exported before. Loading merges; it never deletes progress.</p><div class="row"><button class="btn sm" id="acexp">Export my data</button><label class="btn ghost sm" style="cursor:pointer">Import a file<input type="file" id="acimp" accept=".json,application/json" hidden></label></div><p id="acmsg" role="status"></p></div>'+
+   (can?'<div class="card"><h3>Delete my synced copy</h3><p>Removes your progress from your account and turns sync off. This browser keeps its copy unless you also reset progress on the Quest page.</p><div class="row"><button class="btn ghost sm g-no" id="acdel">Delete synced copy</button></div></div>':'')+
+   '<div class="card"><h3>What is stored, and where</h3><p><b>In this browser:</b> all progress, your notes and stories.</p><p><b>In your account, only when sync is on:</b> the same data, in a private area of this page that no one else can open, not even the page owner. No password, name or email is stored by this app; sign-in is handled by Claude.</p><p><b>Never stored:</b> anything you type into a lab terminal, and anything outside this page.</p></div></div>';
+  var b=function(id,fn){var e=$("#"+id);if(e)e.onclick=fn;};
+  b("acsync",function(){ACCT.last="";acctPush();toast("Syncing");});
+  b("acoff",function(){setSyncWanted(false);acctStop();ACCT.state="paused";acctUI();});
+  b("acon",function(){setSyncWanted(true);acctConnect();});
+  var armed=false;b("acdel",function(){if(!armed){armed=true;this.textContent="Click again to delete it permanently";return;}
+    var btn=this;btn.disabled=true;acctStop();setSyncWanted(false);ACCT.ref.delete().then(function(){ACCT.state="paused";ACCT.last="";toast("Synced copy deleted");acctUI();},function(){ACCT.msg="Could not delete it right now. Try again in a minute.";btn.disabled=false;acctUI();});});
+  b("acexp",function(){var data=JSON.stringify({app:"nines",version:1,exported:new Date().toISOString(),progress:S},null,2),m=$("#acmsg");
+    var use=window.claude&&typeof window.claude.use==="function"?window.claude.use("downloads"):Promise.resolve(null);
+    use.then(function(d){if(d)return d.save({filename:"nines-progress.json",data:data}).then(function(){m.textContent="Saved.";},function(e){m.textContent=e&&e.code==="declined"?"Not saved.":"Saving is not available here.";});
+      try{var u=URL.createObjectURL(new Blob([data],{type:"application/json"})),a=document.createElement("a");a.href=u;a.download="nines-progress.json";document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u);},5000);m.textContent="Download started.";}catch(e){m.textContent="Saving is not available here.";}});});
+  var imp=$("#acimp");if(imp)imp.onchange=function(){var f=this.files&&this.files[0],m=$("#acmsg");if(!f)return;if(f.size>1048576){m.textContent="That file is over 1 MB, which is too large to be a Nines export.";return;}
+    var rd=new FileReader();rd.onload=function(){var o=null;try{o=JSON.parse(String(rd.result));}catch(e){}var r=o&&o.app==="nines"?sanitizeState(o.progress):null;
+      if(!r){m.textContent="That is not a Nines export file.";return;}S=mergeState(sanitizeState(S)||S,r);for(var k in{v2:1})S[k]=1;save();m.textContent="Merged into your progress.";};rd.readAsText(f);};}
+function toast(t){var el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(function(){el.hidden=true;},2600);}
+
+function misOf(n){var a=MISSIONS.filter(function(m){return m.lv===n;}).map(function(m){return m.id;}); if(n===1)a.push("subnet"); if(n===8)a.push("mock"); return a;}
+function quizPass(n){var L=LEVELS[n];return (S.quiz[n]||0)>=Math.ceil(L.quiz.length*0.8);}
+function lvDone(n){return quizPass(n)&&misOf(n).every(function(id){return S.mis[id];});}
+function lvPart(n){return (S.quiz[n]||0)>0||misOf(n).some(function(id){return S.mis[id];});}
+function xp(){var x=0;for(var n in S.quiz)x+=S.quiz[n]*10;for(var m in S.mis)x+=60;for(var c in S.cards)if(S.cards[c]===2)x+=5;for(var l in S.lab)x+=40;for(var r in S.srs)if(S.srs[r].b>=3)x+=5;for(var ce in S.cert)for(var cq in S.cert[ce].q)if(S.cert[ce].q[cq])x+=2;return x;}
+function maxXp(){var x=0;LEVELS.forEach(function(L){x+=L.quiz.length*10+misOf(L.n).length*60;});return x+IMP_AT*5+(window.LAB?(LAB.bash.length+LAB.py.length)*40:0)+((window.TERMS||[]).length+IMP_AT)*5+Object.keys(window.CERTS||{}).reduce(function(a,id){return a+rmItems(id).length*5+certQs(CERTS[id]).length*2+(CERTS[id].labs||[]).length*60;},0);}
+function hud(){var d=0;LEVELS.forEach(function(L){if(lvDone(L.n))d++;});
+  $("#rank").textContent=RANKS[Math.min(d,RANKS.length-1)];
+  $("#xpn").textContent=xp()+" XP";$("#xpb").style.width=Math.min(100,Math.round(100*xp()/maxXp()))+"%";}
+
+/* ---------- diagrams ---------- */
+function B(x,y,w,h,t,c,sub){return '<rect class="'+(c||"d-box")+'" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="6"/><text class="d-t" x="'+(x+w/2)+'" y="'+(y+h/2+(sub?-3:4))+'" text-anchor="middle">'+t+'</text>'+(sub?'<text class="d-m" x="'+(x+w/2)+'" y="'+(y+h/2+12)+'" text-anchor="middle">'+sub+'</text>':'');}
+function A(x1,y1,x2,y2,c,t,ty){var id="h"+(c||"d-l");return '<line class="'+(c||"d-l")+'" x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" marker-end="url(#'+id+')"/>'+(t?'<text class="'+(ty||"d-m")+'" x="'+((x1+x2)/2)+'" y="'+((y1+y2)/2-6)+'" text-anchor="middle">'+t+'</text>':'');}
+var DEFS='<defs>'+[["d-l","--mut"],["d-ls","--syn"],["d-la","--ack"],["d-lr","--rst"]].map(function(p){return '<marker id="h'+p[0]+'" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var('+p[1]+')"/></marker>';}).join("")+'</defs>';
+function svg(w,h,body,label){return '<div class="dg"><svg viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+label+'">'+DEFS+body+'</svg></div>';}
+var DG={
+ l2l3:function(){return svg(680,200,
+  '<text class="d-s" x="20" y="18">10.10.0.0/24  (one broadcast domain)</text><text class="d-s" x="440" y="18">10.20.0.0/24</text>'+
+  B(20,30,90,40,"red","d-box",".2")+B(20,130,90,40,"blue","d-box",".3")+B(150,80,90,40,"switch br0","d-box","by MAC")+
+  B(290,70,100,60,"router","d-hi","by IP, TTL-1")+B(440,80,90,40,"switch br1","d-box","by MAC")+B(570,80,90,40,"green","d-box",".2")+
+  A(110,50,150,88)+A(110,150,150,112)+A(240,100,290,100,"d-ls")+A(390,100,440,100,"d-ls")+A(530,100,570,100)+
+  '<text class="d-m" x="20" y="192">Same subnet: ARP for the host, deliver on layer 2.</text><text class="d-m" x="360" y="192">Other subnet: ARP for the gateway, route on layer 3.</text>',
+  "Two subnets joined by a router. Switches forward by MAC, the router forwards by IP.");},
+ handshake:function(){return svg(680,190,
+  '<text class="d-t" x="110" y="20" text-anchor="middle">client</text><text class="d-t" x="570" y="20" text-anchor="middle">server</text>'+
+  '<line class="d-l" x1="110" y1="28" x2="110" y2="180"/><line class="d-l" x1="570" y1="28" x2="570" y2="180"/>'+
+  A(110,50,570,70,"d-ls","SYN","d-s")+A(570,90,110,110,"d-la","SYN-ACK","d-a")+A(110,130,570,150,"d-ls","ACK","d-s")+
+  '<text class="d-m" x="340" y="176" text-anchor="middle">ESTABLISHED. Close: FIN + ACK each way. RST aborts at once.</text>',
+  "TCP three-way handshake: SYN, SYN-ACK, ACK.");},
+ path:function(){return svg(680,210,
+  B(20,60,110,50,"source","d-box","nc -zv")+B(280,50,120,70,"path","d-hi","router, firewall")+B(550,60,110,50,"destination","d-box","ss -tlnp")+
+  A(130,75,280,75,"d-ls","SYN","d-s")+A(400,75,550,75,"d-ls","SYN","d-s")+A(550,100,400,100,"d-la")+A(280,100,130,100,"d-la")+
+  '<text class="d-a" x="475" y="116" text-anchor="middle">SYN-ACK</text>'+
+  '<text class="d-m" x="75" y="40" text-anchor="middle">tcpdump here</text><text class="d-m" x="605" y="40" text-anchor="middle">and here, at once</text>'+
+  '<text class="d-r" x="20" y="158">SYN leaves, never arrives</text><text class="d-m" x="20" y="174">= the path</text>'+
+  '<text class="d-r" x="250" y="158">SYN arrives, no SYN-ACK</text><text class="d-m" x="250" y="174">= the destination</text>'+
+  '<text class="d-r" x="470" y="158">SYN-ACK leaves, never returns</text><text class="d-m" x="470" y="174">= the return path</text>'+
+  '<text class="d-s" x="20" y="200">Find the last place the packet appears.</text>',
+  "Source, path and destination with capture points on both ends and the three verdicts.");},
+ chains:function(){return svg(680,210,
+  '<text class="d-m" x="10" y="54">in</text>'+A(28,50,56,50)+B(58,30,120,40,"PREROUTING","d-hi","DNAT")+A(178,50,214,50)+B(216,30,96,40,"routing","d-box","decision")+
+  A(312,50,348,50,"d-ls","routed","d-s")+B(350,30,100,40,"FORWARD","d-box","filter")+A(450,50,486,50)+B(488,30,130,40,"POSTROUTING","d-hi","SNAT")+A(618,50,650,50)+'<text class="d-m" x="654" y="54">out</text>'+
+  A(264,70,264,118,"d-la")+'<text class="d-a" x="272" y="100">to this host</text>'+B(216,120,96,40,"INPUT","d-box","filter")+A(312,140,350,140)+B(352,120,96,40,"process","d-ok")+A(448,140,486,140)+B(488,120,96,40,"OUTPUT","d-box")+A(552,120,552,72,"d-la")+
+  '<text class="d-m" x="10" y="196">Rules run top to bottom. First match wins. If nothing matches, the chain policy decides.</text>',
+  "Netfilter chains: PREROUTING, routing decision, FORWARD, POSTROUTING for routed traffic; INPUT and OUTPUT for local processes.");},
+ encap:function(){var x=20,W=640,seg=[["outer IP 20",62,"d-f1"],["UDP 8",44,"d-f1"],["VXLAN 8",52,"d-f1"],["inner Eth 14",70,"d-f1"],["tenant packet: 1450 bytes",412,"d-f2"]],o="";
+  seg.forEach(function(s){o+='<rect class="'+s[2]+'" x="'+x+'" y="40" width="'+(s[1]-2)+'" height="46" rx="4"/><text x="'+(x+s[1]/2)+'" y="'+(s[2]=="d-f2"?68:106)+'" text-anchor="middle" class="'+(s[2]=="d-f2"?"":"d-m")+'" style="font-size:11px;'+(s[2]=="d-f2"?"fill:#1b1404;font-weight:600;font-size:13px":"")+'">'+s[0]+'</text>';x+=s[1];});
+  return svg(680,150,'<text class="d-t" x="20" y="24">One 1500-byte frame on the underlay</text>'+o+'<text class="d-s" x="20" y="136">50 bytes of overhead. Inner MTU 1450, MSS 1410. Small packets fit. Big ones need the sender to know.</text>',"A 1500 byte frame: 50 bytes of VXLAN overhead and 1450 bytes of tenant packet.");},
+ lb:function(){return svg(712,200,
+  B(20,75,90,44,"client")+A(110,97,190,97,"d-ls")+B(192,60,130,74,"load balancer","d-hi","L4: IP + port")+
+  '<text class="d-m" x="257" y="150" text-anchor="middle">L7: host, path, header</text>'+
+  A(322,80,470,40,"d-la")+A(322,97,470,97,"d-la")+A(322,114,470,156,"d-lr")+
+  B(472,20,110,40,"web-1","d-ok","check 200")+B(472,77,110,40,"web-2","d-ok","check 200")+B(472,136,110,40,"web-3","d-bad","2 fails: out")+
+  '<text class="d-m" x="590" y="44">sees the</text><text class="d-m" x="590" y="58">balancer IP</text><text class="d-s" x="590" y="100">X-Forwarded-For</text><text class="d-s" x="590" y="114">or PROXY</text>',
+  "A load balancer in front of three backends, one pulled from rotation after failed health checks.");},
+ rollout:function(){var ph=[["1 host","validate",30],["canary group","bake 1h",70],["one region","bake",110],["the rest","",150]],o="",x=20;
+  ph.forEach(function(p,i){o+='<rect class="'+(i==3?"d-f3":"d-f2")+'" x="'+x+'" y="'+(170-p[2])+'" width="110" height="'+p[2]+'" rx="5" opacity="'+(0.45+i*0.18)+'"/><text class="d-t" x="'+(x+55)+'" y="188" text-anchor="middle">'+p[0]+'</text><text class="d-m" x="'+(x+55)+'" y="202" text-anchor="middle">'+p[1]+'</text>';
+   if(i<3){o+='<line class="d-lr" x1="'+(x+137)+'" y1="20" x2="'+(x+137)+'" y2="172"/><text class="d-r" x="'+(x+137)+'" y="14" text-anchor="middle">gate</text>';} x+=165;});
+  return svg(680,210,o,"Rollout phases: one host, canary group, one region, the rest, with a health gate between each.");},
+ budget:function(){return '<div class="scroll"><table class="t"><tr><th>SLO</th><th>Budget over 30 days</th><th>Math</th></tr><tr><td>99%</td><td>7.2 hours</td><td>43,200 min x 0.01 = 432 min</td></tr><tr><td>99.9%</td><td><b>43.2 minutes</b></td><td>43,200 x 0.001</td></tr><tr><td>99.95%</td><td>21.6 minutes</td><td>43,200 x 0.0005</td></tr><tr><td>99.99%</td><td>4.3 minutes</td><td>43,200 x 0.0001</td></tr></table></div>';}
+};
+/* ---------- interactive diagrams: each one is a small experiment you can run ---------- */
+var NS="http://www.w3.org/2000/svg",STILL=!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);
+function sv(tag,at,text){var e=document.createElementNS(NS,tag);for(var k in at)e.setAttribute(k,at[k]);if(text!=null)e.textContent=text;return e;}
+function shoot(g,x1,y1,x2,y2,cls,label,lcls,dur){return new Promise(function(res){
+  var l=sv("line",{"class":cls,x1:x1,y1:y1,x2:x1,y2:y1,"marker-end":"url(#h"+cls+")","stroke-width":2.4});g.appendChild(l);var t0=performance.now();dur=STILL?0:(dur||520);
+  (function step(now){var t=dur?Math.min(1,Math.max(0,(now-t0)/dur)):1;l.setAttribute("x2",x1+(x2-x1)*t);l.setAttribute("y2",y1+(y2-y1)*t);
+    if(t<1&&g.isConnected)requestAnimationFrame(step);else{if(label)g.appendChild(sv("text",{"class":lcls||"d-m",x:(x1+x2)/2,y:(y1+y2)/2-7,"text-anchor":"middle"},label));res();}})(t0);});}
+function cross(g,x,y){g.appendChild(sv("text",{"class":"d-r",x:x,y:y+7,"text-anchor":"middle",style:"font-size:22px;font-weight:700"},"✕"));}
+function note(g,x,y,t,cls,anchor){g.appendChild(sv("text",{"class":cls||"d-m",x:x,y:y,"text-anchor":anchor||"middle"},t));}
+function wait(ms){return new Promise(function(r){setTimeout(r,STILL?0:ms);});}
+function seq(ctx,steps){var p=Promise.resolve();steps.forEach(function(s){p=p.then(function(){if(ctx.live())return s();});});return p;}
+function chips(labels){return '<div class="dgc">'+labels.map(function(c,i){return '<button class="chip" data-i="'+i+'" aria-pressed="false">'+c+'</button>';}).join("")+'</div>';}
+function panel(box,html,labels,run){
+  box.innerHTML='<p class="dgh">Try it</p>'+chips(labels)+html+'<p class="dgo" aria-live="polite"></p>';
+  var svgEl=box.querySelector("svg"),g=null;if(svgEl){g=sv("g",{});svgEl.appendChild(g);}
+  var out=box.querySelector(".dgo"),tok=0,btns=box.querySelectorAll(".chip");
+  function go(i){tok++;var my=tok;if(g)while(g.firstChild)g.removeChild(g.firstChild);[].forEach.call(btns,function(b,j){b.setAttribute("aria-pressed",j===i?"true":"false");});
+    run(i,{g:g,out:out,svg:svgEl,box:box,live:function(){return my===tok&&box.isConnected;}});}
+  box.querySelector(".dgc").onclick=function(e){var b=e.target.closest(".chip");if(b)go(+b.getAttribute("data-i"));};go(0);}
+var DGI={
+ l2l3:function(box){panel(box,DG.l2l3(),["red → blue","red → green","red → green, ip_forward=0"],function(i,c){var g=c.g;
+   if(i===0){c.out.innerHTML="<b>Same subnet.</b> Red checks: 10.10.0.3 is on my network. It ARPs for blue's MAC and the switch delivers the frame. No router, TTL stays 64.";
+     seq(c,[function(){return shoot(g,110,50,190,92,"d-la","ARP: who has .3?","d-a");},function(){return shoot(g,190,108,110,150,"d-la");}]);}
+   else{c.out.innerHTML=i===1?"<b>Other subnet.</b> Red ARPs for its <b>gateway's</b> MAC, never green's. The router picks a route by IP and subtracts 1 from TTL, so the reply shows ttl=63.":"<b>The router won't route.</b> With ip_forward at 0, Linux only accepts packets addressed to itself. The packet shows on br0 and never on br1.";
+     var st=[function(){return shoot(g,110,50,190,92,"d-ls","ARP: who has .1?","d-s");},function(){return shoot(g,240,100,290,100,"d-ls");}];
+     if(i===1)st.push(function(){return shoot(g,390,100,440,100,"d-ls","TTL 63","d-s");},function(){return shoot(g,530,100,570,100,"d-ls");});
+     else st.push(function(){cross(g,340,150);note(g,340,176,"dropped silently","d-r");});
+     seq(c,st);}});},
+ handshake:function(box){
+  var base=svg(680,200,'<text class="d-t" x="110" y="20" text-anchor="middle">client</text><text class="d-t" x="570" y="20" text-anchor="middle">server :443</text><line class="d-l" x1="110" y1="28" x2="110" y2="190"/><line class="d-l" x1="570" y1="28" x2="570" y2="190"/>',"TCP connection attempts under four conditions.");
+  panel(box,base,["Port open","Firewall DROP","Firewall REJECT","Nothing listening"],function(i,c){var g=c.g,fw=function(){g.appendChild(sv("line",{"class":"d-lr",x1:400,y1:30,x2:400,y2:190}));note(g,400,24,"firewall","d-r");};
+   if(i===0){c.out.innerHTML="<b>Client sees: connected.</b> SYN, SYN-ACK, ACK. In <code>ss</code> the socket is ESTABLISHED.";
+     seq(c,[function(){return shoot(g,110,50,570,70,"d-ls","SYN","d-s");},function(){return shoot(g,570,95,110,115,"d-la","SYN-ACK","d-a");},function(){return shoot(g,110,140,570,160,"d-ls","ACK","d-s");}]);}
+   if(i===1){fw();c.out.innerHTML="<b>Client sees: a timeout,</b> after retries. tcpdump shows SYN, SYN, SYN. DROP reveals nothing to scanners.";
+     seq(c,[50,100,150].map(function(y,k){return function(){return shoot(g,110,y,392,y+12,"d-ls",k?"SYN (retransmit)":"SYN","d-s").then(function(){cross(g,418,y+10);return wait(260);});};}));}
+   if(i===2){fw();c.out.innerHTML="<b>Client sees: connection refused, instantly.</b> The firewall answers with a reset. Fails fast, easier to debug.";
+     seq(c,[function(){return shoot(g,110,60,392,74,"d-ls","SYN","d-s");},function(){return shoot(g,392,100,110,114,"d-lr","RST","d-r");}]);}
+   if(i===3){c.out.innerHTML="<b>Client sees: connection refused.</b> The same symptom as REJECT, so confirm with <code>ss -tlnp</code> on the server. Refused means the packet <b>reached</b> the host.";
+     seq(c,[function(){return shoot(g,110,60,570,80,"d-ls","SYN","d-s");},function(){return shoot(g,570,105,110,125,"d-lr","RST from the kernel","d-r");}]);}});},
+ path:function(box){
+  var base=svg(680,200,B(20,60,110,50,"source","d-box","nc -zv")+B(280,50,120,70,"path","d-hi","router, firewall")+B(550,60,110,50,"destination","d-box","ss -tlnp")+'<text class="d-m" x="75" y="46" text-anchor="middle">tcpdump A</text><text class="d-m" x="605" y="46" text-anchor="middle">tcpdump B</text>',"Where the packet stops, and what each capture sees.");
+  panel(box,base,["Healthy","Dies in the path","Dies at the destination","Dies on the way back"],function(i,c){var g=c.g,cap=function(a,b){note(g,75,140,"A sees: "+a,"d-s");note(g,605,140,"B sees: "+b,"d-s");};
+   var out1=function(){return shoot(g,130,75,280,75,"d-ls","SYN","d-s");},out2=function(){return shoot(g,400,75,550,75,"d-ls","SYN","d-s");},back1=function(){return shoot(g,550,102,400,102,"d-la","SYN-ACK","d-a");},back2=function(){return shoot(g,280,102,130,102,"d-la");};
+   if(i===0){c.out.innerHTML="<b>Verdict: healthy.</b> Both captures see the whole handshake.";seq(c,[out1,out2,back1,back2,function(){cap("SYN, SYN-ACK","SYN, SYN-ACK");}]);}
+   if(i===1){c.out.innerHTML="<b>Verdict: the path.</b> The SYN leaves the source and never arrives. Check firewall counters, conntrack for the flow, <code>mtr</code>, and in a cloud the Cloud Firewall and subnet routes.";seq(c,[out1,function(){cross(g,340,150);cap("SYN, SYN, SYN","nothing");}]);}
+   if(i===2){c.out.innerHTML="<b>Verdict: the destination.</b> The SYN arrives and no SYN-ACK goes back. A closed port would send a reset, so silence means a drop before the socket: an INPUT rule, <code>rp_filter</code>, or a full SYN backlog.";seq(c,[out1,out2,function(){cross(g,605,150);cap("SYN, SYN, SYN","SYN, no reply");}]);}
+   if(i===3){c.out.innerHTML="<b>Verdict: the return path.</b> The SYN-ACK leaves the server and never gets back. Asymmetric routing, or a stateful device that never saw the SYN and treats the reply as INVALID.";seq(c,[out1,out2,back1,function(){cross(g,340,150);cap("SYN, SYN, SYN","SYN, SYN-ACK out");}]);}});},
+ chains:function(box){panel(box,DG.chains(),["Routed through this host","To a process on this host","From a process on this host","Where is DNAT? SNAT?"],function(i,c){
+   var r=c.svg.querySelectorAll("rect");[].forEach.call(r,function(x){x.classList.remove("d-on");});
+   var order=[[0,1,2,3],[0,1,4,5],[5,6,3],[0,3]][i];
+   c.out.innerHTML=["<b>PREROUTING → routing decision → FORWARD → POSTROUTING.</b> Red talking to green in Lab A. That is why the lab's rules went in FORWARD, not INPUT.","<b>PREROUTING → routing decision → INPUT → process.</b> SSH to the VM itself. A guest firewall drop lives here.","<b>OUTPUT → routing decision → POSTROUTING.</b> A curl started on this host.","<b>DNAT in PREROUTING,</b> before the routing decision, so the kernel routes to the new destination. <b>SNAT in POSTROUTING,</b> after routing, once the outgoing interface is known."][i];
+   seq(c,order.map(function(k){return function(){r[k].classList.add("d-on");return wait(i===3?0:330);};}));});},
+ encap:function(box){var OV=[["No tunnel",0,""],["VXLAN",50,"outer IP 20 + UDP 8 + VXLAN 8 + inner Ethernet 14"],["GRE",24,"outer IP 20 + GRE 4"],["IPsec ESP",73,"up to about 73, depending on the cipher"]],jumbo=false;
+  panel(box,'<div class="mtu"><div class="mtubar"><i id="mo"></i><b id="mi"></b></div></div><label class="dgl"><input type="checkbox" id="mtu-jumbo"> Jumbo frames on the underlay (9000)</label>',OV.map(function(o){return o[0];}),function(i,c){
+   function draw(){var u=jumbo?9000:1500,o=OV[i][1],inner=u-o;c.box.querySelector("#mo").style.flex="0 0 "+(o?Math.max(9,o/u*100*3):0)+"%";c.box.querySelector("#mo").textContent=o?o+" B":"";c.box.querySelector("#mi").textContent="tenant packet: "+inner+" bytes";
+     c.out.innerHTML="Underlay MTU <b>"+u+"</b>. Overhead <b>"+o+"</b>"+(OV[i][2]?" ("+OV[i][2]+")":"")+". Inner MTU <b>"+inner+"</b>, TCP MSS <b>"+(inner-40)+"</b>. Largest ping that fits with Don't Fragment: <code>ping -M do -s "+(inner-28)+"</code>."+(o&&!jumbo?" A sender still using 1500 loses its big packets unless it learns: that needs ICMP type 3 code 4, or MSS clamping.":"")+(o&&jumbo?" With jumbo frames underneath, tenants keep a full 1500.":"");}
+   var cb=c.box.querySelector("#mtu-jumbo");cb.onchange=function(){jumbo=cb.checked;draw();};draw();});},
+ lb:function(box){var up=[1,1,0],lat=[0,0,0];
+  function draw(){var n=up.reduce(function(a,b){return a+b;},0),ys=[40,97,156],o=B(20,75,90,44,"client")+A(110,97,190,97,n?"d-ls":"d-lr")+B(192,60,130,74,"load balancer","d-hi",n?"round robin":"503");
+   up.forEach(function(u,k){o+=A(322,[80,97,114][k],470,ys[k],u?"d-la":"d-lr")+B(472,ys[k]-20,110,40,"web-"+(k+1),(u?"d-ok":"d-bad")+'" data-b="'+k+'" tabindex="0" role="button" aria-label="Toggle web-'+(k+1)+'" style="cursor:pointer',u?Math.round(100/n)+"% of traffic":"out of rotation");});
+   box.innerHTML='<p class="dgh">Try it: click a backend to fail or recover its health check</p>'+svg(600,200,o,"A load balancer and three backends you can fail.")+'<p class="dgo" aria-live="polite">'+
+    (n===3?"<b>All healthy.</b> Each backend takes a third.":n===0?"<b>No healthy backend: 503.</b> Nothing is left to send traffic to. This is the page.":"<b>"+n+" of 3 healthy.</b> After N failed checks a backend is pulled, and the rest absorb its share. After M passes it comes back. Too aggressive and backends flap. Too slow and users hit dead servers.")+'</p>';
+   var s=box.querySelector("svg");s.onclick=function(e){var r=e.target.closest("[data-b]");if(r){up[+r.getAttribute("data-b")]^=1;draw();}};s.onkeydown=function(e){if((e.key==="Enter"||e.key===" ")&&e.target.getAttribute("data-b")!=null){e.preventDefault();up[+e.target.getAttribute("data-b")]^=1;draw();var f=box.querySelector('[data-b="'+e.target.getAttribute("data-b")+'"]');if(f)f.focus();}};}
+  draw();},
+ rollout:function(box){var ph=[["1 host","validate",30],["canary group","bake 1h",70],["one region","bake",110],["the rest","",150]],b="",x=20;
+  ph.forEach(function(p,i){b+='<rect class="d-box" x="'+x+'" y="'+(170-p[2])+'" width="110" height="'+p[2]+'" rx="5"/><text class="d-t" x="'+(x+55)+'" y="188" text-anchor="middle">'+p[0]+'</text><text class="d-m" x="'+(x+55)+'" y="202" text-anchor="middle">'+p[1]+'</text>';if(i<3)b+='<line class="d-l" stroke-dasharray="4 3" x1="'+(x+137)+'" y1="24" x2="'+(x+137)+'" y2="172"/>';x+=165;});
+  panel(box,svg(680,210,b,"A phased rollout you can run with or without a regression."),["Clean release","Regression shows in the canary","Regression shows in the region"],function(i,c){var g=c.g,bad=[-1,1,2][i];
+   c.out.innerHTML="Rolling out…";
+   var st=[];ph.forEach(function(p,k){var x0=20+165*k;st.push(function(){var r=sv("rect",{"class":k===bad?"d-f1":"d-f2",x:x0,y:170-p[2],width:110,height:p[2],rx:5,opacity:0.85});if(k===bad)r.setAttribute("style","fill:var(--rst)");g.appendChild(r);return wait(520);});
+     if(k<3)st.push(function(){if(k===bad){note(g,x0+137,16,"STOP","d-r");cross(g,x0+137,96);c.out.innerHTML="<b>The gate after "+p[0]+" failed.</b> Drops and probe failures are up against hosts still on the old version, so the rollout stops by itself. Blast radius: "+p[0]+". Roll back by flag first, binary second, confirm with the same checks, then ask why earlier gates missed it.";return Promise.reject("stop");}
+       note(g,x0+137,16,"gate ✓","d-a");return wait(300);});});
+   st.push(function(){c.out.innerHTML="<b>Clean.</b> One host, canary, region, the rest. Every gate compared new against old on drops, probe success and conntrack, and each phase baked before the next.";});
+   seq(c,st).catch(function(){});});},
+ budget:function(box){var SLO=[99,99.9,99.95,99.99],down=10;
+  panel(box,'<label class="dgl" for="bud-min">Minutes of downtime so far this window: <b id="bud-v">10</b></label><input type="range" id="bud-min" min="0" max="60" step="1" value="10"><div class="mtu"><div class="mtubar"><i id="bu"></i><b id="bl"></b></div></div>',SLO.map(function(s){return s+"%";}),function(i,c){
+   var r=c.box.querySelector("#bud-min");function draw(){down=+r.value;c.box.querySelector("#bud-v").textContent=down;var bud=43200*(100-SLO[i])/100,used=down/bud*100,u=c.box.querySelector("#bu");
+     u.style.flex="0 0 "+Math.min(100,used)+"%";u.style.background=used>=100?"var(--rst)":"var(--syn)";u.textContent=used>=12?Math.round(used)+"% spent":"";c.box.querySelector("#bl").textContent=used<100?(bud-down).toFixed(1)+" min left":"";
+     c.out.innerHTML="SLO <b>"+SLO[i]+"%</b> over 30 days: 43,200 min × "+((100-SLO[i])/100).toFixed(4).replace(/0+$/,"")+" = <b>"+(bud>=120?(bud/60).toFixed(1)+" hours":bud.toFixed(1)+" minutes")+"</b> of budget. "+(used>=100?"<b>Budget blown.</b> Freeze risky rollouts and spend the time on reliability.":used>=50?"More than half spent: slow down, pick safer changes.":"Budget left means you can take risk.");}
+   r.value=down;r.oninput=draw;draw();});}
+};
+function fillDG(root){[].forEach.call(root.querySelectorAll("[data-dg]"),function(el){var n=el.getAttribute("data-dg"),box=document.createElement("div");box.className="dgi";el.parentNode.replaceChild(box,el);
+  try{if(DGI[n])DGI[n](box);else box.innerHTML=DG[n]();}catch(e){box.innerHTML=DG[n]?DG[n]():"";}});}
+
+/* ---------- views ---------- */
+var view={lv:null,tab:null,mis:null}, timers=[];
+function clearTimers(){timers.forEach(clearInterval);timers=[];}
+var stop3d=null;
+function hopStat(L){var q=S.quiz[L.n]||0,ms=misOf(L.n),md=ms.filter(function(id){return S.mis[id];}).length;
+  return lvDone(L.n)?"Reached":"Quiz "+q+"/"+L.quiz.length+(ms.length?" · labs "+md+"/"+ms.length:"");}
+/* The map in 3D: nine hops on a rising helix. Drag to rotate, tap a node to poke it. */
+function net3d(el){
+  if(!window.THREE){el.hidden=true;return;}
+  var T=THREE,renderer;
+  try{renderer=new T.WebGLRenderer({antialias:true,alpha:true});}catch(e){el.hidden=true;return;}
+  var still=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));el.insertBefore(renderer.domElement,el.firstChild);
+  var scene=new T.Scene(),cam=new T.PerspectiveCamera(38,1,0.1,100);cam.position.set(0,0.2,13);
+  scene.add(new T.AmbientLight(0x8fa6d0,0.55));var pl=new T.PointLight(0xffffff,1.1,60);pl.position.set(6,8,12);scene.add(pl);
+  var world=new T.Group();scene.add(world);world.rotation.x=0.18;
+  var C={todo:0x62769a,part:0xf2b84b,done:0x4fcbb2,line:0x33486b};
+  var pts=[],nodes=[],hits=[],lbls=[];
+  LEVELS.forEach(function(L,i){var a=i*0.95,r=2.7-i*0.06;pts.push(new T.Vector3(Math.cos(a)*r,-3.3+i*0.83,Math.sin(a)*r));});
+  var curve=new T.CatmullRomCurve3(pts,false,"catmullrom",0.5);
+  world.add(new T.Mesh(new T.TubeGeometry(curve,160,0.028,8,false),new T.MeshBasicMaterial({color:C.line})));
+  // faint vertical axis and floor rings give the helix something to turn against
+  [3.4,2.4,1.4].forEach(function(r,i){var g=new T.Mesh(new T.RingGeometry(r-0.012,r+0.012,96),new T.MeshBasicMaterial({color:C.line,transparent:true,opacity:0.5-i*0.1,side:T.DoubleSide}));g.rotation.x=Math.PI/2;g.position.y=-3.9;world.add(g);});
+  var sg=new T.BufferGeometry(),sp=[];for(var s=0;s<360;s++){var R=7+Math.random()*9,th=Math.random()*6.283,ph=Math.acos(2*Math.random()-1);sp.push(R*Math.sin(ph)*Math.cos(th),R*Math.cos(ph),R*Math.sin(ph)*Math.sin(th));}
+  sg.setAttribute("position",new T.Float32BufferAttribute(sp,3));world.add(new T.Points(sg,new T.PointsMaterial({color:0x7f93b5,size:0.07,transparent:true,opacity:0.7})));
+  var lay=document.createElement("div");el.appendChild(lay);
+  LEVELS.forEach(function(L,i){var col=lvDone(L.n)?C.done:(lvPart(L.n)?C.part:C.todo),big=i===8?1.45:1;
+    var g=new T.Group();g.position.copy(pts[i]);
+    var core=new T.Mesh(new T.SphereGeometry(0.24*big,28,18),new T.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:0.55,roughness:0.35,metalness:0.2}));
+    var cage=new T.Mesh(new T.IcosahedronGeometry(0.46*big,1),new T.MeshBasicMaterial({color:col,wireframe:true,transparent:true,opacity:0.42}));
+    g.add(core);g.add(cage);
+    if(i===8){var halo=new T.Mesh(new T.TorusGeometry(0.95,0.018,8,80),new T.MeshBasicMaterial({color:C.part}));halo.rotation.x=Math.PI/2.4;g.add(halo);g.userData.halo=halo;}
+    var hit=new T.Mesh(new T.SphereGeometry(0.7*big,10,8),new T.MeshBasicMaterial({visible:false}));hit.userData.i=i;g.add(hit);hits.push(hit);
+    g.userData={cage:cage,core:core,s:1,ts:1,halo:g.userData.halo};world.add(g);nodes.push(g);
+    var d=document.createElement("div");d.className="lbl"+(lvDone(L.n)?" done":"");d.innerHTML="<b>"+(i+1)+"</b>"+L.name;lay.appendChild(d);lbls.push(d);});
+  var pk=[],pg=new T.SphereGeometry(0.075,12,8);for(var k=0;k<7;k++){var m=new T.Mesh(pg,new T.MeshBasicMaterial({color:C.part}));m.userData.t=k/7;world.add(m);pk.push(m);}
+  var rings=[];
+  function poke(i){var g=nodes[i];g.userData.s=1.9;
+    var r=new T.Mesh(new T.RingGeometry(0.5,0.56,64),new T.MeshBasicMaterial({color:0xf2b84b,transparent:true,opacity:0.95,side:T.DoubleSide}));
+    r.position.copy(g.getWorldPosition(new T.Vector3()));r.lookAt(cam.position);r.userData.age=0;scene.add(r);rings.push(r);select(i);}
+  var info=document.createElement("div");info.className="netinfo";el.appendChild(info);var sel=-1;
+  function select(i){sel=i;var L=LEVELS[i];lbls.forEach(function(d,j){d.classList.toggle("sel",j===i);});
+    info.innerHTML='<span class="k">Hop '+(i+1)+' of 9 · '+hopStat(L)+'</span><h3>'+L.name+'</h3><p>'+L.sub+'</p><div class="row"><a class="btn sm" href="#level-'+i+'">Enter this hop</a></div>';}
+  var first=0;for(var f=0;f<9;f++){if(!lvDone(f)){first=f;break;}}select(first);
+  var hint=document.createElement("span");hint.className="nethint";hint.textContent="drag to rotate · tap a node to poke it";el.appendChild(hint);
+  // pointer: drag rotates with inertia, a tap without movement pokes
+  var ray=new T.Raycaster(),v2=new T.Vector2(),down=null,vy=0,vx=0,auto=!still,idle=0;
+  function pick(e){var b=renderer.domElement.getBoundingClientRect();v2.set((e.clientX-b.left)/b.width*2-1,-((e.clientY-b.top)/b.height)*2+1);ray.setFromCamera(v2,cam);var h=ray.intersectObjects(hits,false);return h.length?h[0].object.userData.i:-1;}
+  var cv=renderer.domElement;
+  cv.addEventListener("pointerdown",function(e){down={x:e.clientX,y:e.clientY,lx:e.clientX,ly:e.clientY,moved:0};auto=false;idle=0;el.classList.add("drag");try{cv.setPointerCapture(e.pointerId);}catch(_){}} );
+  cv.addEventListener("pointermove",function(e){
+    if(down){var dx=e.clientX-down.lx,dy=e.clientY-down.ly;down.lx=e.clientX;down.ly=e.clientY;down.moved+=Math.abs(dx)+Math.abs(dy);
+      vy=dx*0.008;vx=dy*0.004;world.rotation.y+=vy;world.rotation.x=Math.max(-0.55,Math.min(0.75,world.rotation.x+vx));return;}
+    var h=pick(e);el.classList.toggle("over",h>=0);nodes.forEach(function(g,j){g.userData.ts=j===h?1.3:1;});});
+  function up(e){if(!down)return;el.classList.remove("drag");var tap=down.moved<7;down=null;if(tap){vy=vx=0;var h=pick(e);if(h>=0)poke(h);}}
+  cv.addEventListener("pointerup",up);cv.addEventListener("pointercancel",function(){down=null;el.classList.remove("drag");});
+  cv.addEventListener("pointerleave",function(){el.classList.remove("over");nodes.forEach(function(g){g.userData.ts=1;});});
+  function size(){var w=el.clientWidth,h=el.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);cam.aspect=w/h;cam.position.z=w<520?17.5:13;cam.updateProjectionMatrix();}
+  size();var ro=window.ResizeObserver?new ResizeObserver(size):null;if(ro)ro.observe(el);
+  var raf=0,last=performance.now(),tmp=new T.Vector3(),clock=0;
+  function frame(now){raf=requestAnimationFrame(frame);var dt=Math.max(0,Math.min(0.05,(now-last)/1000));last=now;clock+=dt;
+    if(!down){if(auto)world.rotation.y+=dt*0.22;else{world.rotation.y+=vy;vy*=0.94;idle+=dt;if(!still&&idle>6&&Math.abs(vy)<0.0005)auto=true;}}
+    nodes.forEach(function(g,i){var u=g.userData;u.s+=(u.ts-u.s)*Math.min(1,dt*7);g.scale.setScalar(u.s);u.cage.rotation.y+=dt*(0.5+i*0.04);u.cage.rotation.x+=dt*0.3;if(u.halo)u.halo.rotation.z+=dt*0.6;
+      u.core.material.emissiveIntensity=(i===sel?0.95:0.5)+(still?0:Math.sin(clock*2.2+i)*0.12);});
+    pk.forEach(function(m){if(!still)m.userData.t=(m.userData.t+dt*0.07)%1;m.position.copy(curve.getPointAt(m.userData.t));});
+    for(var r=rings.length-1;r>=0;r--){var q=rings[r];q.userData.age+=dt;var a=q.userData.age/0.7;q.scale.setScalar(1+a*3.2);q.material.opacity=Math.max(0,0.95*(1-a));if(a>=1){scene.remove(q);q.geometry.dispose();q.material.dispose();rings.splice(r,1);}}
+    renderer.render(scene,cam);
+    var w=el.clientWidth,h=el.clientHeight;
+    nodes.forEach(function(g,i){g.getWorldPosition(tmp);var depth=tmp.z;tmp.project(cam);var x=(tmp.x*0.5+0.5)*w+16,y=(-tmp.y*0.5+0.5)*h-9;
+      lbls[i].style.transform="translate("+Math.min(x,w-lbls[i].offsetWidth-4).toFixed(1)+"px,"+y.toFixed(1)+"px)";lbls[i].style.opacity=i===sel?1:(depth>0?0.95:0.45);});}
+  raf=requestAnimationFrame(frame);
+  el.__poke=poke;el.__world=world;
+  return function(){cancelAnimationFrame(raf);if(ro)ro.disconnect();scene.traverse(function(o){if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose();});renderer.dispose();try{renderer.forceContextLoss();}catch(_){}};
+}
+function route(){clearTimers();if(stop3d){stop3d();stop3d=null;}var h=(location.hash||"#map").slice(1);
+  var m=/^level-(\d)$/.exec(h);
+  document.body.setAttribute("data-zone",m||h==="stories"||h==="cheatsheet"?"lesson":h==="codelab"||h==="drills"||h==="remember"||h==="account"||h==="certs"||/^cert-/.test(h)?"ink":"map");
+  if(m){view.lv=+m[1];if(!view.keep){view.tab=null;view.mis=null;}view.keep=false;level();}
+  else if(h==="cheatsheet"){sheet();} else if(h==="drills"){drills();} else if(h==="remember"){remember();} else if(h==="account"){accountPage();} else if(h==="certs"){certsPage();} else if(/^cert-\w+$/.test(h)){var cid=h.slice(5);if(view.cert!==cid){view.cert=cid;CV.tab="overview";CV.dom="all";}certPage(cid);} else if(h==="codelab"){codelab();} else if(h==="stories"){storiesPage();} else {map();}
+  [].forEach.call(document.querySelectorAll(".navlink"),function(a){var t=a.getAttribute("href").slice(1);a.classList.toggle("on",t===h||(t==="map"&&(m||h==="map"))||(t==="certs"&&/^cert-/.test(h)));});
+  window.scrollTo(0,0);hud();}
+window.addEventListener("hashchange",route);
+
+function map(){
+  var hops=LEVELS.map(function(L){var q=S.quiz[L.n]||0,ms=misOf(L.n),md=ms.filter(function(id){return S.mis[id];}).length;
+    var cls=lvDone(L.n)?"done":(lvPart(L.n)?"part":"");
+    var st=lvDone(L.n)?"reached":"quiz "+q+"/"+L.quiz.length+(ms.length?"  labs "+md+"/"+ms.length:"");
+    return '<a class="hop '+cls+'" href="#level-'+L.n+'"><span class="n">'+(L.n+1)+'</span><span><span class="t">'+L.name+'</span><span class="s">'+L.sub+'</span></span><span class="st">'+(lvDone(L.n)?"✓ ":"")+st+'</span></a>';}).join("");
+  var iv=S.iv,head=[iv.role,iv.company].filter(Boolean).join(" · ");
+  app.innerHTML=(window.NightScene?'<div class="city">'+window.NightScene({id:"city",city:false,vh:240})+'<div class="ttl" aria-hidden="true"><b>NINES</b><span>99.99% · ON CALL TONIGHT</span></div></div>':'')+
+   '<section class="hero"><span class="kicker">'+esc(head||"SRE · DevOps · Platform engineering")+'</span>'+
+   '<h1>From first ticket to <em>the packet level</em>.</h1>'+
+   '<p class="lede">Nine hops. Each one has a lesson with diagrams you can run, a quiz, timed speak-aloud cards, and most have a terminal where you type the real commands. It can\'t guarantee an offer. It can make sure nothing on these pages surprises you.</p></section>'+
+   '<div class="net" id="net" aria-label="3D map of the nine hops. The same hops are listed below."></div>'+
+   '<div class="cols"><div class="trace"><div class="trace-h">$ traceroute <b>the-offer</b> · 9 hops max · pass the quiz at 80% and clear every lab to reach a hop</div>'+hops+'</div>'+
+   '<aside class="side">'+(function(){var r=rmStats("core","all");return '<div class="card"><h3>Remember</h3><p>'+(r.due?"<b>"+r.due+"</b> due for review today.":"Nothing due right now.")+' '+r.known+' of '+r.all.length+' learned.</p><div class="row"><a class="btn sm" href="#remember" style="text-decoration:none">Start five minutes</a></div></div>';})()+'<div class="card pager"><h3>On-call pager</h3><p>A random incident from any level. No warning, like the real thing.</p><div class="alert" id="pg">No pages. Quiet shift.</div><div class="row"><button class="btn" id="pgb">Take a page</button></div></div>'+
+   '<div class="card"><h3>How to use this</h3><p><b>Speak</b> tabs are the point. Say the answer out loud against the 90-second clock before you reveal it.</p><p>Progress saves in this browser only.</p><div class="row"><button class="btn ghost sm" id="rst">Reset progress</button></div></div>'+
+   '<div class="card" id="ivc"></div>'+
+   '<div class="card"><h3>Also here</h3><p><a href="#codelab">Code Lab</a>: Bash and Python exercises that really run, with hidden tests, for coding screens.</p><p><a href="#drills">Drills</a>: every card by topic, timed or cover-the-column, plus your own imported packs.</p><p><a href="#stories">Stories</a>: your incident stories and the behavioural bank.</p></div></aside></div>';
+  stop3d=net3d($("#net"))||null;
+  ivCard($("#ivc"),false);
+  var pick=null;
+  $("#pgb").onclick=function(){
+    if(pick){view.lv=pick.lv;view.tab="term";view.mis=pick.id;view.keep=true;location.hash="level-"+pick.lv;return;}
+    var pool=MISSIONS.filter(function(m){return m.page&&!S.mis[m.id];}); if(!pool.length) pool=MISSIONS.filter(function(m){return m.page;});
+    pick=pool[Math.floor(Math.random()*pool.length)];$("#pg").textContent=pick.page;this.textContent="Acknowledge and open";};
+  var armed=false;$("#rst").onclick=function(){if(!armed){armed=true;this.textContent="Click again to erase everything";return;}
+    S={quiz:{},mis:{},cards:{},notes:S.notes,asks:[],mock:0,v2:1,lab:{},code:{},srs:{},rm:{},cert:{},iv:S.iv,stories:S.stories,resetAt:Date.now()};save();map();};
+}
+/* Next interview: typed by the user, saved in this browser only, rendered as text. */
+var IVF=[["role","Role","SRE II, Platform Engineer…"],["company","Company","Who it's with"],["when","When","Mon Nov 23, 12:30 ET, video call"],["who","With whom","Hiring manager, recruiter, panel…"],["stages","Stages","One per line: recruiter screen, hiring manager, panel + coding…"]];
+function ivCard(box,editing){var iv=S.iv,has=IVF.some(function(f){return iv[f[0]];});
+  if(editing){box.innerHTML='<h3>Next interview</h3><p>Stays in this browser. Nothing is sent anywhere.</p>'+IVF.map(function(f){var id="iv-"+f[0],v=esc(iv[f[0]]||"");
+      return '<label class="dgl" for="'+id+'">'+f[1]+'</label>'+(f[0]==="stages"?'<textarea id="'+id+'" placeholder="'+esc(f[2])+'">'+v+'</textarea>':'<input class="fld" id="'+id+'" maxlength="120" placeholder="'+esc(f[2])+'" value="'+v+'">');}).join("")+
+      '<div class="row" style="margin-top:10px"><button class="btn sm" id="ivs">Save</button><button class="btn ghost sm" id="ivx">Cancel</button>'+(has?'<button class="btn ghost sm" id="ivd">Clear</button>':'')+'</div>';
+    $("#ivs").onclick=function(){var o={};IVF.forEach(function(f){var v=$("#iv-"+f[0]).value.trim().slice(0,f[0]==="stages"?1000:120);if(v)o[f[0]]=v;});S.iv=o;save();map();};
+    $("#ivx").onclick=function(){ivCard(box,false);};
+    if(has)$("#ivd").onclick=function(){S.iv={};save();map();};return;}
+  if(!has){box.innerHTML='<h3>Next interview</h3><p>Add the role, the date and the stages of your next interview to keep them in front of you.</p><div class="row"><button class="btn sm" id="ive">Add it</button></div>';}
+  else box.innerHTML='<h3>'+esc(iv.role||"Next interview")+'</h3>'+(iv.company?'<p><b>'+esc(iv.company)+'</b></p>':'')+(iv.when?'<p>'+esc(iv.when)+'</p>':'')+(iv.who?'<p>With: '+esc(iv.who)+'</p>':'')+
+    (iv.stages?'<ol class="ivst">'+iv.stages.split("\n").filter(function(l){return l.trim();}).map(function(l){return "<li>"+esc(l)+"</li>";}).join("")+'</ol>':'')+
+    '<div class="row"><button class="btn ghost sm" id="ive">Edit</button><a href="#level-8">Interview level</a></div>';
+  $("#ive").onclick=function(){ivCard(box,true);};}
+
+function level(){
+  var L=LEVELS[view.lv],ms=MISSIONS.filter(function(m){return m.lv===L.n;});
+  var tabs=[]; if(L.n===8)tabs.push(["asks","Your questions"]); else tabs.push(["learn","Learn"]);
+  tabs.push(["quiz","Quiz"]); if(rmItems("core").some(function(it){return it.lv===L.n;}))tabs.push(["rem","Remember"]); if(ms.length)tabs.push(["term","Terminal"]); if(L.n===1)tabs.push(["subnet","Subnet drill"]);
+  tabs.push(["speak","Speak"]); if(L.n===8){tabs.push(["mock","Mock interview"]);}
+  if(!view.tab||!tabs.some(function(t){return t[0]===view.tab;}))view.tab=tabs[0][0];
+  var badge={quiz:quizPass(L.n)?"✓":"",term:ms.length&&ms.every(function(m){return S.mis[m.id];})?"✓":"",subnet:S.mis.subnet?"✓":"",mock:S.mis.mock?"✓":""};
+  app.innerHTML='<div class="lvh"><span class="kicker">Hop '+(L.n+1)+' of 9'+(lvDone(L.n)?" · reached":"")+'</span><h1>'+L.name+'</h1><p class="lede">'+L.intro+'</p></div>'+
+   '<div class="tabs" role="tablist">'+tabs.map(function(t){return '<button class="tab" role="tab" data-tab="'+t[0]+'" aria-selected="'+(t[0]===view.tab)+'">'+t[1]+'<span class="c">'+(badge[t[0]]||"")+'</span></button>';}).join("")+'</div><div id="pane"></div>'+
+   '<div class="row" style="margin-top:34px">'+(L.n>0?'<a class="btn ghost" href="#level-'+(L.n-1)+'">← '+LEVELS[L.n-1].name+'</a>':'')+(L.n<8?'<a class="btn ghost" href="#level-'+(L.n+1)+'">'+LEVELS[L.n+1].name+' →</a>':'')+'</div>';
+  [].forEach.call(app.querySelectorAll(".tab"),function(b){b.onclick=function(){clearTimers();view.tab=b.getAttribute("data-tab");view.mis=null;level();};});
+  var pane=$("#pane");
+  ({learn:learn,quiz:quiz,term:term,subnet:subnet,speak:function(p,L){speak(p,cardsFor(L.n),"lv"+L.n);},rem:function(p,L){rmPanel(p,{scope:"core",topic:"L"+L.n});},asks:asksTab,mock:mock})[view.tab](pane,L,ms);
+}
+
+/* Pack notes are HTML written by the pack's author (you). They are not user input from the page. */
+function packNotes(n){var o="";if(CO.notes&&CO.notes[n])o+='<aside class="pnote"><span class="k">For this company</span>'+CO.notes[n]+'</aside>';
+  if(ME.notes&&ME.notes[n])o+='<aside class="pnote me"><span class="k">Your notes · private</span>'+ME.notes[n]+'</aside>';return o;}
+function learn(p,L){p.innerHTML='<div class="lesson">'+L.lesson+packNotes(L.n)+'</div><div class="row" style="margin-top:24px"><button class="btn" id="toq">Take the quiz</button></div>';fillDG(p);
+  $("#toq").onclick=function(){view.tab="quiz";level();window.scrollTo(0,0);};}
+
+function quiz(p,L){
+  var order=shuffle(L.quiz.map(function(_,i){return i;})),right=0,answered=0;
+  p.innerHTML='<p class="score" id="sc">Best so far: <b>'+(S.quiz[L.n]||0)+'/'+L.quiz.length+'</b>. Pass at '+Math.ceil(L.quiz.length*0.8)+'. Only first tries count.</p><div class="qz">'+order.map(function(qi,k){var Q=L.quiz[qi],opts=shuffle(Q.o.map(function(t,i){return [t,i===0];}));
+    return '<div class="q" data-q="'+qi+'"><div class="num">'+(k+1)+' / '+order.length+'</div><h4>'+esc(Q.q)+'</h4><div class="opts">'+opts.map(function(o){return '<button class="opt" data-ok="'+(o[1]?1:0)+'">'+esc(o[0])+'</button>';}).join("")+'</div><div class="exp" hidden>'+esc(Q.e)+'</div></div>';}).join("")+'</div><div class="row" style="margin-top:18px"><button class="btn ghost" id="again">Shuffle and retake</button></div>';
+  p.querySelector(".qz").onclick=function(ev){var b=ev.target.closest(".opt");if(!b||b.disabled)return;var box=b.closest(".q"),ok=b.getAttribute("data-ok")==="1";
+    [].forEach.call(box.querySelectorAll(".opt"),function(o){o.disabled=true;if(o.getAttribute("data-ok")==="1")o.classList.add("ok");});
+    if(!ok)b.classList.add("no");else right++;answered++;box.querySelector(".exp").hidden=false;
+    if(answered===order.length){var was=quizPass(L.n);if(right>(S.quiz[L.n]||0)){S.quiz[L.n]=right;save();}
+      $("#sc").innerHTML="This run: <b>"+right+"/"+order.length+"</b>. "+(right>=Math.ceil(order.length*0.8)?"Passed.":"Not yet. Read the explanations and retake.");
+      if(!was&&quizPass(L.n))toast(lvDone(L.n)?"Hop reached: "+L.name:"Quiz passed");$("#sc").scrollIntoView({block:"center"});}};
+  $("#again").onclick=function(){quiz(p,L);window.scrollTo(0,0);};
+}
+
+/* ---------- terminal ---------- */
+function term(p,L,ms){
+  if(!view.mis){p.innerHTML='<p class="lede" style="margin-bottom:16px">The shell is simulated, with output scripted from your labs. Type the commands yourself. <code>hint</code> shows the next step, <code>help</code> lists the built-ins.</p><div class="mlist">'+ms.map(function(m){return '<button class="m'+(S.mis[m.id]?" done":"")+'" data-m="'+m.id+'"><span class="tag">'+(S.mis[m.id]?"✓ cleared":m.steps.length+" objectives")+' · '+m.host+'</span><b>'+m.title+'</b><span>'+esc(m.brief)+'</span></button>';}).join("")+'</div>';
+    p.querySelector(".mlist").onclick=function(ev){var b=ev.target.closest(".m");if(b){view.mis=b.getAttribute("data-m");level();}};return;}
+  var m=MISSIONS.filter(function(x){return x.id===view.mis;})[0];
+  runMission(p,m,function(){view.mis=null;level();},function(first){if(first)toast(lvDone(m.lv)?"Hop reached: "+LEVELS[m.lv].name:"Lab cleared: +60 XP");});
+}
+/* One simulated-shell lab. Used by the quest hops and by the cert labs. */
+function runMission(p,m,onBack,onWin){
+  var st=JSON.parse(JSON.stringify(m.st||{})),done=m.steps.map(function(){return false;}),hist=[],hi=0,won=false,graded=false,X=!!m.exam,end=m.minutes?Date.now()+m.minutes*60000:0;
+  var prompt=m.prompt||((m.user||"root")+"@"+m.host+":~"+(m.user?"$":"#"));
+  p.innerHTML='<div class="lab"><div class="brief"><button class="btn ghost sm" id="back" style="justify-self:start">← '+(X?"Leave the exam":"All labs")+'</button><h3>'+m.title+'</h3><p>'+esc(m.brief)+'</p>'+
+   (X?'<div class="row"><span class="timer" id="mxt" style="font-size:1.4rem"></span><button class="btn sm" id="grade">End and grade</button></div><div id="mxr"></div>':'')+'<ol class="steps" id="steps"></ol></div>'+
+   '<div class="term"><div class="term-h"><span>'+m.host+' · simulated shell</span><span id="prog"></span></div><div class="scr" id="scr" tabindex="0" aria-live="polite"></div><form class="inl" id="f" autocomplete="off"><label for="cmd">'+esc(prompt)+'</label><input id="cmd" spellcheck="false" autocapitalize="off" autocorrect="off" aria-label="Command"></form></div></div>';
+  var scr=$("#scr"),inp=$("#cmd");
+  function out(t,c){if(t==="")return;var d=document.createElement("div");d.className=c||"o";d.textContent=t;scr.appendChild(d);scr.scrollTop=scr.scrollHeight;}
+  function steps(){var hide=X&&!graded;$("#steps").innerHTML=m.steps.map(function(s,i){return '<li class="'+(!hide&&done[i]?"d":graded&&!done[i]?"x":"")+'">'+esc(s.g)+'</li>';}).join("");$("#prog").textContent=hide?m.steps.length+" tasks":done.filter(Boolean).length+"/"+done.length;}
+  function fmt(ms){var t=Math.max(0,Math.round(ms/1000));return Math.floor(t/3600)+":"+("0"+Math.floor(t%3600/60)).slice(-2)+":"+("0"+t%60).slice(-2);}
+  function grade(){if(graded)return;graded=true;clearTimers();inp.disabled=true;var n=done.filter(Boolean).length,pct=Math.round(100*n/done.length);steps();
+    $("#mxr").innerHTML='<div class="rm-fb '+(pct>=70?"ok":"no")+'"><span><b>'+n+' of '+done.length+' tasks · '+pct+'%</b> '+(pct>=70?"That is a pass: Red Hat needs 210 of 300, which is 70 percent.":"Below the 70 percent pass mark.")+' Tasks marked with a cross were not done, or not done the persistent way.</span></div>';
+    out("\n=== Exam over: "+n+" of "+done.length+" tasks ("+pct+"%) ===","win");if(onWin)onWin(null,{n:n,t:done.length,p:pct});}
+  steps();out(m.page||("Lab: "+m.title),"sys");out(X?"Exam mode: no hints, and nothing is marked until you grade. Type objectives to re-read the tasks.":"Type a command. `hint` for the next step, `help` for built-ins.","sys");
+  if(X){$("#grade").onclick=grade;var tick=function(){var e=$("#mxt");if(e)e.textContent=fmt(end-Date.now());if(Date.now()>=end){out("Time is up.","sys");grade();}};tick();timers.push(setInterval(tick,1000));}
+  $("#back").onclick=onBack;
+  scr.onclick=function(){if(!String(window.getSelection()))inp.focus();};
+  inp.onkeydown=function(e){if(e.key==="ArrowUp"){if(hi>0){hi--;inp.value=hist[hi];}e.preventDefault();}else if(e.key==="ArrowDown"){if(hi<hist.length){hi++;inp.value=hist[hi]||"";}e.preventDefault();}};
+  $("#f").onsubmit=function(e){e.preventDefault();var rawc=inp.value;inp.value="";var cmd=rawc.trim().replace(/\s+/g," ");
+    var line=document.createElement("div");line.innerHTML='<span class="p">'+esc(prompt)+'</span> <span class="c">'+esc(rawc)+'</span>';scr.appendChild(line);
+    if(!cmd){scr.scrollTop=scr.scrollHeight;return;}hist.push(rawc);hi=hist.length;
+    if(cmd==="clear"){scr.innerHTML="";return;}
+    if(cmd==="help"){out("Built-ins: hint (next step), objectives, clear, answer <word> (when a step asks for a verdict).\nEverything else is the real command. `sudo` and `ip netns exec <ns>` prefixes are accepted and optional.","sys");return;}
+    if(cmd==="objectives"){out(m.steps.map(function(s,i){return (X&&!graded?"- ":done[i]?"[x] ":"[ ] ")+s.g;}).join("\n"),"sys");return;}
+    if(cmd==="hint"&&X){out("No hints in the exam. The man pages are your help on the real one: man 5 fstab, man semanage-fcontext, man nmcli-examples.","sys");return;}
+    if(cmd==="hint"){var i=done.indexOf(false);out(i<0?"All objectives done.":"Next: "+m.steps[i].g+"\n  try: "+m.steps[i].hint,"sys");return;}
+    var c=cmd.replace(/^sudo (-i )?(?!-)/,"").replace(/^ip netns exec \w+ /,"").replace(/^ip -n \w+ /,"ip ");
+    var hit=null,mt=null;for(var k=0;k<m.cmds.length;k++){mt=m.cmds[k][0].exec(c);if(mt){hit=m.cmds[k];break;}}
+    if(hit){var o=typeof hit[1]==="function"?hit[1](st,mt,c):hit[1];if(hit[2])hit[2](st,mt,c);out(o);}
+    else if(/^answer\b/.test(c)){out("That's not it. Look at the evidence again, or type hint.","sys");}
+    else{out("bash: "+c.split(" ")[0]+": not part of this lab. Type `hint` for the next step.","sys");}
+    var ch=false;m.steps.forEach(function(s,i){if(!done[i]&&s.re.test(c)&&(!s.when||s.when(st))){done[i]=true;ch=true;}});
+    if(ch){steps();}
+    if(X)return;
+    if(!won&&done.every(Boolean)){won=true;out("\n✓ Lab cleared.","win");out(m.win,"win");var first=!S.mis[m.id];S.mis[m.id]=1;save();if(onWin)onWin(first);}
+  };
+  inp.focus({preventScroll:true});
+}
+
+/* ---------- subnet drill ---------- */
+function ip2s(n){return [n>>>24,(n>>>16)&255,(n>>>8)&255,n&255].join(".");}
+function subnet(p){
+  var streak=0,cur;
+  function gen(){var pre=[23,24,25,26,26,27,27,28,28,29,30][Math.floor(Math.random()*11)],base=[[10,0],[10,1],[172,16],[192,168]][Math.floor(Math.random()*4)];
+    var ip=((base[0]<<24)>>>0)+(base[1]<<16)+(Math.floor(Math.random()*6)<<8)+1+Math.floor(Math.random()*253),size=Math.pow(2,32-pre),net=Math.floor(ip/size)*size;
+    if(ip===net||ip===net+size-1)ip=net+1;cur={ip:ip,pre:pre,net:net,bc:net+size-1,hosts:size-2};}
+  function draw(msg){gen();p.innerHTML='<div class="deck"><div class="sc"><span class="kicker">Streak '+streak+' / 5'+(S.mis.subnet?" · cleared":"")+'</span><h3 class="mono">'+ip2s(cur.ip)+'/'+cur.pre+'</h3>'+
+    '<form id="sf" class="row"><input id="s-net" class="mono" placeholder="network address" aria-label="Network address" style="flex:1 1 160px"><input id="s-bc" class="mono" placeholder="broadcast" aria-label="Broadcast address" style="flex:1 1 160px"><input id="s-h" class="mono" placeholder="usable hosts" aria-label="Usable hosts" inputmode="numeric" style="flex:1 1 110px"><button class="btn">Check</button></form>'+
+    '<p id="sm" style="margin:0;color:var(--mut)">'+(msg||"Block size = 256 minus the last mask octet that isn't 255. Five in a row clears the drill.")+'</p></div></div>';
+    [].forEach.call(p.querySelectorAll("input"),function(i){i.style.cssText+=";background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:9px;color:var(--fg);min-width:0";});
+    $("#sf").onsubmit=function(e){e.preventDefault();var ok=$("#s-net").value.trim()===ip2s(cur.net)&&$("#s-bc").value.trim()===ip2s(cur.bc)&&+$("#s-h").value===cur.hosts;
+      var sol=ip2s(cur.ip)+"/"+cur.pre+": network "+ip2s(cur.net)+", broadcast "+ip2s(cur.bc)+", "+cur.hosts+" usable.";
+      if(ok){streak++;if(streak>=5&&!S.mis.subnet){S.mis.subnet=1;save();toast("Subnet drill cleared: +60 XP");}draw("Correct. "+sol);}else{streak=0;draw("Not quite. "+sol+" Streak reset.");}
+      $("#s-net").focus();};}
+  draw();
+}
+
+/* ---------- speak aloud ---------- */
+function cardsFor(n){var a=[];CARDS.forEach(function(c,i){if(c[0]===n)a.push(i);});return a;}
+function ansHtml(c){var ex=ME.examples&&ME.examples[c[1]];
+  return (c[2]?'<b>Say first</b><p>'+esc(c[2])+'</p>':'')+(c[3]?'<b>Then add</b><p class="add">'+esc(c[3])+'</p>':'')+(ex?'<b>Your example · private</b><p class="add">'+esc(ex)+'</p>':'');}
+
+/* ---------- drills: every card, by topic, two ways to practise, plus imported packs ---------- */
+var drill={topic:"all",mode:"timed"};
+function drillIds(){var ids=[];CARDS.forEach(function(c,i){var t=drill.topic;
+  if(t==="all"||(t==="missed"&&S.cards[ck(i)]!=null&&S.cards[ck(i)]<2)||(t==="co"&&c[4]==="co")||(t==="me"&&c[4]==="me")||(t.charAt(0)==="L"&&c[0]===+t.slice(1))||(t.charAt(0)==="I"&&c[4]==="imp"&&c[5]===+t.slice(1)))ids.push(i);});return ids;}
+function drills(){
+  var chipsA=[["all","Everything"],["missed","Missed or shaky"]];LEVELS.forEach(function(L){if(cardsFor(L.n).length)chipsA.push(["L"+L.n,L.name]);});
+  if((CO.cards||[]).length)chipsA.push(["co",CO.label||"Company"]);if((ME.cards||[]).length)chipsA.push(["me","About you"]);
+  IMPORTED.forEach(function(p,i){chipsA.push(["I"+i,p.name]);});
+  if(!chipsA.some(function(c){return c[0]===drill.topic;}))drill.topic="all";
+  var ids=drillIds(),nailed=ids.filter(function(i){return S.cards[ck(i)]===2;}).length;
+  app.innerHTML='<div class="lvh"><span class="kicker">Drills</span><h1>Say it before you see it</h1><p class="lede">Every card on the platform: fundamentals, networking, scenarios, and anything you import. Pick a topic, then drill it against the clock or cover the answers and work down the list.</p></div>'+
+   '<div class="dgc" id="dt">'+chipsA.map(function(c){return '<button class="chip" data-t="'+c[0]+'" aria-pressed="'+(c[0]===drill.topic)+'">'+esc(c[1])+'</button>';}).join("")+'</div>'+
+   '<div class="row" style="margin:14px 0 18px"><span class="score"><b>'+nailed+'</b> of '+ids.length+' nailed</span><button class="btn'+(drill.mode==="timed"?"":" ghost")+' sm" data-m="timed">Timed, out loud</button><button class="btn'+(drill.mode==="cover"?"":" ghost")+' sm" data-m="cover">Cover the column</button></div><div id="dp"></div>'+
+   '<div class="card" style="margin-top:34px;max-width:720px"><h3>Import a drill pack</h3><p>Load your own questions from a JSON file. It stays in this browser and is never uploaded. Format: <code>{"name":"My drill","cards":[{"topic":"DNS","q":"Question","say":"First sentence","add":"Detail"}]}</code></p>'+
+   '<div class="row"><input type="file" id="imp" accept=".json,application/json" aria-label="Choose a JSON drill pack"></div><p id="impm" role="status"></p>'+
+   (IMPORTED.length?'<div class="row">'+IMPORTED.map(function(p,i){return '<button class="btn ghost sm" data-rm="'+i+'">Remove “'+esc(p.name)+'” ('+p.cards.length+')</button>';}).join("")+'</div>':'')+'</div>';
+  var dp=$("#dp");
+  if(!ids.length)dp.innerHTML='<p class="lede">Nothing here yet. Cards you grade Shaky or Blank show up under Missed.</p>';
+  else if(drill.mode==="timed")speak(dp,ids,"drill");
+  else{dp.innerHTML='<div class="scroll"><table class="t cover"><tr><th>#</th><th>Question</th><th>Answer (click to uncover)</th></tr>'+ids.map(function(i,n){var c=CARDS[i];return '<tr><td>'+(n+1)+'</td><td>'+esc(c[1])+'</td><td><button class="cov" aria-expanded="false">Show</button><div hidden class="ans">'+ansHtml(c)+'</div></td></tr>';}).join("")+'</table></div>';
+    dp.onclick=function(e){var b=e.target.closest(".cov");if(!b)return;var d=b.nextElementSibling;d.hidden=!d.hidden;b.textContent=d.hidden?"Show":"Hide";b.setAttribute("aria-expanded",String(!d.hidden));};}
+  $("#dt").onclick=function(e){var b=e.target.closest(".chip");if(b){clearTimers();drill.topic=b.getAttribute("data-t");drills();}};
+  app.onclick=function(e){var m=e.target.closest("[data-m]");if(m&&location.hash==="#drills"){clearTimers();drill.mode=m.getAttribute("data-m");drills();return;}
+    var r=e.target.closest("[data-rm]");if(r&&location.hash==="#drills"){IMPORTED.splice(+r.getAttribute("data-rm"),1);saveImported();loadImportedCards();drill.topic="all";drills();}};
+  $("#imp").onchange=function(){var f=this.files&&this.files[0],msg=$("#impm");if(!f)return;if(f.size>1048576){msg.textContent="That file is over 1 MB. Split it into smaller packs.";return;}
+    var rd=new FileReader();rd.onload=function(){var p=null;try{p=sanePack(JSON.parse(String(rd.result)));}catch(e){}
+      if(!p){msg.textContent="Could not read that file. It needs a \"cards\" list where each card has a question and an answer.";return;}
+      IMPORTED.push(p);saveImported();loadImportedCards();drill.topic="I"+(IMPORTED.length-1);drills();toast("Imported "+p.cards.length+" cards");};
+    rd.onerror=function(){msg.textContent="Could not read that file.";};rd.readAsText(f);};
+}
+function speak(p,ids,tag,onEnd){
+  var queue=shuffle(ids),total=queue.length,seen=0,nailed=0;
+  function next(){clearTimers();if(!queue.length){p.innerHTML='<div class="deck"><div class="sc"><h3>Deck finished</h3><p style="margin:0">Nailed '+nailed+' of '+total+' on the first pass. Shaky and blank cards came back until you had them.</p><div class="row"><button class="btn" id="re">Run it again</button></div></div></div>';$("#re").onclick=function(){speak(p,ids,tag,onEnd);};if(onEnd)onEnd();return;}
+    var i=queue.shift(),c=CARDS[i],left=90;
+    p.innerHTML='<div class="deck"><div class="sc"><div class="row" style="justify-content:space-between"><span class="kicker">Card '+Math.min(seen+1,total)+' of '+total+' · say it out loud</span><span class="timer" id="tm">1:30</span></div><h3>'+esc(c[1])+'</h3>'+
+      '<div class="ans" id="an" hidden>'+ansHtml(c)+'</div>'+
+      '<div class="row" id="ctl"><button class="btn" id="rv">I\'ve said it. Show the answer</button></div></div></div>';
+    var tm=$("#tm");timers.push(setInterval(function(){left--;var a=Math.abs(left);tm.textContent=(left<0?"+":"")+Math.floor(a/60)+":"+("0"+a%60).slice(-2);if(left<0)tm.classList.add("over");},1000));
+    $("#rv").onclick=function(){clearTimers();$("#an").hidden=false;$("#ctl").innerHTML='<div class="grade"><button class="btn ghost g-ok" data-g="2">Nailed it</button><button class="btn ghost" data-g="1">Shaky</button><button class="btn ghost g-no" data-g="0">Blank</button></div>';
+      $("#ctl").onclick=function(ev){var b=ev.target.closest("[data-g]");if(!b)return;var g=+b.getAttribute("data-g");if(seen<total){seen++;if(g===2)nailed++;}
+        var key=ck(i);if(g===2){if(S.cards[key]!==2){S.cards[key]=2;save();}}else{S.cards[key]=g;queue.push(i);save();}next();};};
+  }
+  if(!total){p.innerHTML="<p>No cards here.</p>";return;}next();
+}
+
+/* ---------- level 8 ---------- */
+/* Behavioural bank: generic prompts. Your answers are typed here and stay in this browser. */
+var BEHAV=[
+ ["Tell me about a production incident you handled.","Calm under pressure, a method, and what you changed afterwards."],
+ ["Tell me about a time you found the root cause when a workaround kept coming back.","Whether you stop at the symptom."],
+ ["Tell me about a time you were wrong, or made a mistake in production.","Ownership without drama. What you changed so it can't recur."],
+ ["Tell me about a time you disagreed with a teammate or a senior engineer.","Evidence over opinion. Whether people still want to work with you after."],
+ ["Tell me about something you automated.","Do you remove toil, and can you size the win honestly."],
+ ["Tell me about a time you had to learn something fast.","How you learn, and whether you can say what you still don't know."],
+ ["Tell me about a time you handed work over, or picked up someone else's.","Written communication. Can anyone continue from your notes."],
+ ["Tell me about a time you had too much to do. How did you choose?","Prioritising by customer impact, and saying no clearly."],
+ ["Tell me about a time you explained something technical to a non-technical person.","Clarity. Incident updates to customers count."],
+ ["What are you weakest at, and what are you doing about it?","Self-awareness with a plan. Never a fake weakness."],
+ ["Tell me about a technical decision you made that went against your manager's or your team's plan.","Judgement backed by evidence, how you disagreed, and that you owned the result either way."],
+ ["Tell me about a post-mortem you drove. How did you make sure the fixes actually happened?","Blameless analysis, an owner and a date on every action item, and follow-through."],
+ ["How do you manage work with teams in other time zones whose priorities conflict with yours?","Clear written handoffs, and raising priority conflicts early instead of guessing."]];
+var SFF=[["t","Title","The DNS change that took down checkout"],["w","When and where","2024, previous job"],["u","Use it for","Production incident, root cause, a mistake"],["s","What happened","Situation in one line, what you checked, what you found, the fix",1],["l","The lesson","What you changed so it can't happen again",1]];
+function storyHtml(x,i){return '<div class="story"><h3>'+esc(x.t||"")+(x.w?' <span class="note mono" style="font-size:.75rem">'+esc(x.w)+'</span>':'')+'</h3>'+(x.u?'<div class="use">Use for: '+esc(x.u)+'</div>':'')+(x.s?'<p>'+esc(x.s)+'</p>':'')+(x.l?'<p class="les">Lesson: '+esc(x.l)+'</p>':'')+
+  (i>=0?'<div class="row"><button class="btn ghost sm" data-se="'+i+'">Edit</button></div>':'<p class="note mono" style="font-size:.72rem;margin:0">From your private pack file</p>')+'</div>';}
+function storiesPage(){
+  var st=ME.stories||[],gaps=ME.gaps||[];
+  app.innerHTML='<div class="lvh"><span class="kicker">Stories</span><h1>Evidence, in 90 seconds</h1><p class="lede">Every claim gets a story. Each one runs: situation in one line, what you checked, what you found, the fix, the lesson. Say each three times, in your own words, under 90 seconds.</p></div>'+
+   '<div class="lesson"><h3>Your stories</h3><p>Write four or five real incidents you can tell under pressure. They stay in this browser and are never uploaded.</p></div>'+
+   st.map(function(x){return storyHtml({t:x[0],w:x[1],u:x[2],s:x[3],l:x[4]},-1);}).join("")+
+   S.stories.map(function(x,i){return storyHtml(x,i);}).join("")+
+   '<div id="sform" style="margin:6px 0 30px"><button class="btn" id="sadd">Add a story</button></div>'+
+   (gaps.length?'<div class="lesson"><h3>Lines to firm up</h3><p>The truth is what makes a line survive a follow-up. Write what you actually did, at its real size.</p></div>'+gaps.map(function(g){return '<div class="gap"><label for="'+esc(g[0])+'">'+esc(g[1])+'</label><small>'+esc(g[2])+'</small><textarea id="'+esc(g[0])+'">'+esc(S.notes[g[0]]||"")+'</textarea></div>';}).join(""):"")+
+   '<div class="lesson"><h3>The behavioural bank</h3><p>Thirteen questions SRE, DevOps and platform interviews draw from. For each, note which story you would tell and its first sentence. What you type saves in this browser only.</p></div>'+
+   BEHAV.map(function(q,i){return '<div class="gap"><label for="bh-'+i+'">'+esc(q[0])+'</label><small>They are checking: '+esc(q[1])+'</small><textarea id="bh-'+i+'" placeholder="Which story, and your first sentence">'+esc(S.notes["bh-"+i]||"")+'</textarea></div>';}).join("")+
+   '<div class="row" style="margin-top:8px"><button class="btn" id="bhgo">Drill these out loud, timed</button></div><div id="bhp" style="margin-top:18px"></div>';
+  [].forEach.call(app.querySelectorAll("textarea"),function(t){t.oninput=function(){S.notes[t.id]=t.value;save();};});
+  function form(i){var x=i>=0?S.stories[i]:{},f=$("#sform");
+    f.innerHTML='<div class="story"><h3>'+(i>=0?"Edit story":"New story")+'</h3>'+SFF.map(function(d){var id="sf-"+d[0],v=esc(x[d[0]]||"");
+      return '<label class="dgl" for="'+id+'">'+d[1]+'</label>'+(d[3]?'<textarea class="sf" id="'+id+'" placeholder="'+esc(d[2])+'">'+v+'</textarea>':'<input class="fld" id="'+id+'" maxlength="140" placeholder="'+esc(d[2])+'" value="'+v+'">');}).join("")+
+      '<div class="row" style="margin-top:12px"><button class="btn" id="ssave">Save story</button><button class="btn ghost" id="sx">Cancel</button>'+(i>=0?'<button class="btn ghost g-no" id="sdel">Delete</button>':'')+'</div></div>';
+    f.scrollIntoView({block:"start"});$("#sf-t").focus({preventScroll:true});
+    $("#ssave").onclick=function(){var o={};SFF.forEach(function(d){var v=$("#sf-"+d[0]).value.trim().slice(0,d[3]?3000:140);if(v)o[d[0]]=v;});
+      if(!o.t){toast("Give the story a title first.");return;}if(i>=0)S.stories[i]=o;else S.stories.push(o);save();storiesPage();toast("Story saved");};
+    $("#sx").onclick=function(){storiesPage();};
+    if(i>=0){var armed=false;$("#sdel").onclick=function(){if(!armed){armed=true;this.textContent="Click again to delete";return;}S.stories.splice(i,1);save();storiesPage();};}}
+  $("#sadd").onclick=function(){form(-1);};
+  app.onclick=function(e){var b=e.target.closest("[data-se]");if(b&&location.hash==="#stories")form(+b.getAttribute("data-se"));};
+  $("#bhgo").onclick=function(){var p=$("#bhp"),order=shuffle(BEHAV.map(function(_,i){return i;})),k=0;(function step(){clearTimers();
+    if(k>=order.length){p.innerHTML='<div class="deck"><div class="sc"><h3>Bank finished</h3><p style="margin:0">Pick the answer that felt weakest and say it once more.</p></div></div>';return;}
+    var q=BEHAV[order[k]],left=90,mine=S.notes["bh-"+order[k]]||"";
+    p.innerHTML='<div class="deck"><div class="sc"><div class="row" style="justify-content:space-between"><span class="kicker">'+(k+1)+' of '+order.length+' · out loud</span><span class="timer" id="tm">1:30</span></div><h3>'+esc(q[0])+'</h3><p style="margin:0;color:var(--mut)">They are checking: '+esc(q[1])+'</p>'+(mine?'<div class="ans" id="an" hidden><b>Your note</b><p>'+esc(mine)+'</p></div>':'')+'<div class="row">'+(mine?'<button class="btn ghost" id="pk">Peek at my note</button>':'')+'<button class="btn" id="nx">Next</button></div></div></div>';
+    var tm=$("#tm");timers.push(setInterval(function(){left--;var a=Math.abs(left);tm.textContent=(left<0?"+":"")+Math.floor(a/60)+":"+("0"+a%60).slice(-2);if(left<0)tm.classList.add("over");},1000));
+    if(mine)$("#pk").onclick=function(){$("#an").hidden=false;};$("#nx").onclick=function(){k++;step();};p.scrollIntoView({block:"center"});})();};
+}
+function asksTab(p){
+  p.innerHTML='<div class="lesson"><h3>Pick three questions for them</h3><p>React to each answer in one sentence before asking the next. Skip pay and benefits unless they raise it.</p></div><ul class="asks">'+ASKS.map(function(a,i){return '<li><label><input type="checkbox" id="ask-'+i+'" data-i="'+i+'"'+(S.asks.indexOf(i)>=0?" checked":"")+'><span>'+esc(a)+'</span></label></li>';}).join("")+'</ul>'+packNotes(8)+
+   '<p class="lede" style="margin-top:22px">Your stories and resume lines are in <a href="#stories">Stories</a>.</p>';
+  [].forEach.call(p.querySelectorAll(".asks input"),function(c){c.onchange=function(){var i=+c.getAttribute("data-i");if(c.checked){if(S.asks.length>=3){c.checked=false;toast("Three is the limit. Untick one first.");return;}S.asks.push(i);}else{S.asks=S.asks.filter(function(x){return x!==i;});}save();};});
+}
+function mock(p){
+  function find(t){for(var i=0;i<CARDS.length;i++)if(CARDS[i][1].indexOf(t)===0)return i;return -1;}
+  function rnd(n){var a=cardsFor(n);return a[Math.floor(Math.random()*a.length)];}
+  p.innerHTML='<div class="deck"><div class="sc"><h3>The shape of a 30-minute technical screen</h3><div class="scroll"><table class="t"><tr><th>Minutes</th><th>What happens</th><th>What they\'re checking</th></tr><tr><td>0 to 3</td><td>Tell me about yourself.</td><td>A calm, short start.</td></tr><tr><td>3 to 10</td><td>Two or three lines from your resume.</td><td>Can you back every line?</td></tr><tr><td>10 to 20</td><td>Two technical scenarios.</td><td>Method, terms, thinking out loud.</td></tr><tr><td>20 to 24</td><td>A question from the team\'s own area.</td><td>Depth where they actually work.</td></tr><tr><td>24 to 30</td><td>Your questions.</td><td>Three, reacting to each answer.</td></tr></table></div>'+
+   '<p style="margin:0;color:var(--mut)">This run draws about eight cards in that order. Stand up, say every answer out loud, and record yourself on your phone. Afterwards, redo the single weakest answer once and stop.</p><div class="row"><button class="btn" id="go">Start the mock</button></div></div></div>';
+  $("#go").onclick=function(){var seq=(ME.mock||[]).map(find).concat([find("A packet never arrived"),rnd(Math.random()<0.5?3:4),rnd(5),rnd(6),rnd(7)]).filter(function(i,n,a){return i>=0&&a.indexOf(i)===n;});while(seq.length<8){var x=rnd(1+Math.floor(Math.random()*7));if(seq.indexOf(x)<0)seq.push(x);}
+    var k=0;(function step(){clearTimers();if(k>=seq.length){if(!S.mis.mock){S.mis.mock=1;save();toast("Mock complete: +60 XP");}S.mock=(S.mock||0)+1;save();
+        p.innerHTML='<div class="deck"><div class="sc"><h3>Mock done</h3><p style="margin:0">Now ask your three questions out loud, then close: <q>Thank you. I enjoyed this. What are the next steps?</q></p><p style="margin:0;color:var(--mut)">Listen back to two answers. Did the first sentence answer the question? Any apology? Pick one habit to fix.</p><div class="row"><button class="btn" id="ag">Run another</button></div></div></div>';$("#ag").onclick=function(){mock(p);};return;}
+      var c=CARDS[seq[k]],left=90;
+      p.innerHTML='<div class="deck"><div class="sc"><div class="row" style="justify-content:space-between"><span class="kicker">Question '+(k+1)+' of '+seq.length+'</span><span class="timer" id="tm">1:30</span></div><h3>'+esc(c[1])+'</h3><div class="ans" id="an" hidden><b>Say first</b><p>'+esc(c[2])+'</p><b>Then add</b><p class="add">'+esc(c[3])+'</p></div><div class="row"><button class="btn ghost" id="pk">Peek at the answer</button><button class="btn" id="nx">Next question</button></div></div></div>';
+      var tm=$("#tm");timers.push(setInterval(function(){left--;var a=Math.abs(left);tm.textContent=(left<0?"+":"")+Math.floor(a/60)+":"+("0"+a%60).slice(-2);if(left<0)tm.classList.add("over");},1000));
+      $("#pk").onclick=function(){$("#an").hidden=false;};$("#nx").onclick=function(){k++;step();};})();};
+}
+/* ---------- Code Lab: Bash and Python exercises that really execute, judged by hidden tests ---------- */
+var lab={tab:"primer",ex:null},PY={state:"idle",n:0};
+var PYBASE="https://cdnjs.cloudflare.com/ajax/libs/brython/3.12.5/";
+var PYSRI={"brython.min.js":"sha512-pIOxl5S363+2G1loPRafWsA/0aes0xjwusOexVpl2gEAvX/K6SLzsOZiZhU2M0hjJxD7eMxOfISIgToD1yK8/g==","brython_stdlib.js":"sha512-KjAOqGpyHdAFbpM4rEGF7OxfvPQainrRahBqkAp0xBUuUHLDo2OgPn6nzVCXybReeA+gywNOo/6jbinJP7zB0w=="};
+var PYDRIVER=["import sys, io, traceback","from browser import window","class _O:","    def __init__(self): self.b=[]","    def write(self,x): self.b.append(str(x))","    def flush(self): pass",
+ "_o=_O(); _so,_se=sys.stdout,sys.stderr","sys.stdout=_o; sys.stderr=_o","_in=io.StringIO(window.__py_in)","sys.stdin=_in","def _input(prompt=''):","    line=_in.readline()","    if line=='': raise EOFError('EOF when reading a line')","    return line.rstrip('\\n')",
+ "class _Exit(BaseException):","    def __init__(self,c=0): self.c=c","def _exit(c=0): raise _Exit(c)","def _num(c):","    if c is None: return 0","    try: return int(str(c))","    except BaseException: return 1",
+ "_sysexit=sys.exit; sys.exit=_exit","_g={'__name__':'__main__','input':_input,'exit':_exit,'quit':_exit}","_err=''; _code=0","try:","    exec(compile(window.__py_src,'solution.py','exec'),_g)","except _Exit as e:","    _code=_num(e.c)","except SystemExit as e:","    _code=_num(e.args[0] if e.args else None)",
+ "except SyntaxError as e:","    _err='SyntaxError: '+str(e.msg)+' (line '+str(e.lineno)+')'; _code=1","except BaseException as e:","    try:","        _err=''.join(traceback.format_exception(type(e),e,e.__traceback__))","    except BaseException:","        _err=type(e).__name__+': '+str(e)","    _code=1",
+ "sys.stdout,sys.stderr=_so,_se","sys.exit=_sysexit","window.__py_out=''.join(_o.b)","window.__py_err=_err","window.__py_code=_code"].join("\n");
+function pyLoad(){if(PY.promise)return PY.promise;PY.state="loading";
+  function one(name){return new Promise(function(res,rej){var sc=document.createElement("script");sc.src=PYBASE+name;sc.integrity=PYSRI[name];sc.crossOrigin="anonymous";sc.referrerPolicy="no-referrer";sc.onload=res;sc.onerror=function(){rej(new Error("The Python engine could not be downloaded. Check the connection and try again."));};document.head.appendChild(sc);});}
+  PY.promise=one("brython.min.js").then(function(){return one("brython_stdlib.js");}).then(function(){
+    try{window.brython({debug:0});var t=pyRunNow("print(6*7)","");if(t.out.trim()!=="42")throw new Error(t.err||"self-test failed");PY.state="ready";}
+    catch(e){PY.state="blocked";throw new Error("Python cannot run inside this page: the page's security policy blocks it. Run the Python exercises from the standalone build, or paste your solution into a local python3.");}
+  });PY.promise.catch(function(){if(PY.state!=="blocked"){PY.state="idle";PY.promise=null;}});return PY.promise;}
+function pyRunNow(src,stdin){window.__py_src=src;window.__py_in=stdin||"";window.__py_out="";window.__py_err="";window.__py_code=0;
+  try{window.__BRYTHON__.runPythonSource(PYDRIVER,"pq_run_"+(PY.n++));}catch(e){return {out:window.__py_out||"",err:"Error: "+(e&&e.message||e),code:1};}
+  var err=String(window.__py_err||""),k=err.indexOf('  File "solution.py"');if(k>0)err="Traceback (most recent call last):\n"+err.slice(k);
+  return {out:String(window.__py_out||""),err:err,code:window.__py_code|0};}
+function labNorm(x){return String(x).replace(/\r/g,"").split("\n").map(function(l){return l.trim().replace(/[ \t]+/g," ");}).join("\n").replace(/\n+$/,"");}
+function labRun(kind,code,t){if(kind==="bash"){var r=MiniSh.run(code,LAB.fixtures[t.fx],t.stdin,t.args);return {out:r.out,err:r.err,code:r.code};}return pyRunNow(code,t.stdin);}
+function labFind(id){var a=LAB.bash.concat(LAB.py);for(var i=0;i<a.length;i++)if(a[i].id===id)return a[i];return null;}
+function codelab(){
+  if(!window.LAB||!window.MiniSh){app.innerHTML='<p class="lede">The Code Lab files did not load.</p>';return;}
+  if(lab.ex){labExercise();return;}
+  var tabs=[["primer","How coding screens work"],["bash","Bash ("+LAB.bash.filter(function(e){return S.lab[e.id];}).length+"/"+LAB.bash.length+")"],["py","Python ("+LAB.py.filter(function(e){return S.lab[e.id];}).length+"/"+LAB.py.length+")"]];
+  app.innerHTML='<div class="lvh"><span class="kicker">Code Lab</span><h1>Write it, run it, pass the hidden tests</h1><p class="lede">Timed coding screens check whether you can turn a plain description into a script that prints exactly the right output. Here the Bash and the Python really execute, and each exercise is judged against tests you cannot see.</p></div>'+
+   '<div class="tabs" role="tablist">'+tabs.map(function(t){return '<button class="tab" role="tab" data-lt="'+t[0]+'" aria-selected="'+(t[0]===lab.tab)+'">'+t[1]+'</button>';}).join("")+'</div><div id="lp"></div>';
+  [].forEach.call(app.querySelectorAll("[data-lt]"),function(b){b.onclick=function(){lab.tab=b.getAttribute("data-lt");codelab();};});
+  var lp=$("#lp");
+  if(lab.tab==="primer"){lp.innerHTML='<div class="lesson">'+
+   '<h3>What the screen is</h3><p>You get a problem statement, an editor, and a Run button. Your program reads <b>standard input</b> or a named file and writes to <b>standard output</b>. A judge runs it against several inputs and compares your output with the expected output, character for character. You usually see one or two sample cases. The rest are hidden. In a live round an interviewer watches and you are expected to talk while you type.</p>'+
+   '<h3>Seven habits that pass tests</h3><ol class="rules"><li><b>Read the output format twice.</b> Order, separators, decimals, a trailing percent sign. Most failures are format, not logic.</li><li><b>Run the sample first.</b> Get one case right before thinking about edge cases.</li><li><b>Then ask what breaks it:</b> empty input, one line, ties, a blank last line, a zero in a division.</li><li><b>Sort when the order is not given by the data.</b> A dictionary or an awk array has no promised order.</li><li><b>Say what you are doing.</b> One sentence before each step. Silence reads as stuck.</li><li><b>Prefer the boring tool.</b> A counter and a sort beat anything clever.</li><li><b>Leave the last two minutes</b> to rerun the sample and reread the statement.</li></ol>'+
+   '<h3>Python: the reading patterns</h3><pre class="code">import sys\n\nn = int(input())                       # one number on a line\nnums = list(map(int, input().split())) # several numbers on a line\nfor line in sys.stdin:                 # every remaining line\n    parts = line.split()\n\nfrom collections import Counter\ncounts = Counter()\ncounts[key] += 1\nfor key, n in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0])):\n    print(key, n)\n\nprint(f"{value:.2f}")                  # two decimals</pre>'+
+   '<h3>Bash: the pipeline pattern</h3><pre class="code">awk \'{print $1}\' access.log | sort | uniq -c | sort -rn | head -3\n#   pick the field        group  count     rank      top N\n\nawk \'$9 >= 500 {e++} END {printf "%.1f\\n", e * 100 / NR}\' access.log\nawk -F: \'$NF == "/bin/bash" {print $1}\' passwd\n\nwhile read -r host port; do\n  if [ "$port" -eq 443 ]; then echo "$host tls"; fi\ndone &lt; hosts.txt</pre>'+
+   '<h3>What this lab is and is not</h3><p>The Bash here is a small shell written for this page. It runs pipes, redirects, variables, loops, conditionals and the usual text tools (<code>'+MiniSh.commands.filter(function(c){return /^[a-z]+$/.test(c);}).join("</code> <code>")+'</code>), and it was checked against real bash on 133 commands. It is not full bash: no here-documents, no background jobs, no functions, no awk range patterns. The Python is real Python 3.12 running in your browser. A loop that never ends will freeze the tab, so reload if that happens. Your code is saved in this browser.</p></div>'+
+   '<div class="row" style="margin-top:22px"><button class="btn" data-go="bash">Start with Bash</button><button class="btn ghost" data-go="py">Start with Python</button></div>';
+   lp.onclick=function(e){var b=e.target.closest("[data-go]");if(b){lab.tab=b.getAttribute("data-go");codelab();window.scrollTo(0,0);}};return;}
+  var list=lab.tab==="bash"?LAB.bash:LAB.py;
+  lp.innerHTML='<div class="mlist">'+list.map(function(e,i){return '<button class="m'+(S.lab[e.id]?" done":"")+'" data-ex="'+e.id+'"><span class="tag">'+(S.lab[e.id]?"✓ passed":"#"+(i+1))+' · '+esc(e.tag)+'</span><b>'+esc(e.title)+'</b></button>';}).join("")+'</div>';
+  lp.onclick=function(e){var b=e.target.closest("[data-ex]");if(b){lab.ex=b.getAttribute("data-ex");codelab();window.scrollTo(0,0);}};
+}
+function labExercise(){
+  var e=labFind(lab.ex),kind=lab.ex.charAt(0)==="b"?"bash":"py",list=kind==="bash"?LAB.bash:LAB.py,pos=list.indexOf(e),t0=e.tests[0],started=Date.now();
+  var files="";
+  if(kind==="bash"){var fx=LAB.fixtures[t0.fx];Object.keys(fx).forEach(function(n){if(e.q.indexOf(n)>=0||e.sol.indexOf(n)>=0)files+='<details class="fx"><summary>'+esc(n)+' · '+fx[n].replace(/\n$/,"").split("\n").length+' lines (sample)</summary><pre class="code">'+esc(fx[n])+'</pre></details>';});
+    if(t0.stdin)files+='<details class="fx" open><summary>Sample standard input</summary><pre class="code">'+esc(t0.stdin)+'</pre></details>';
+    if(t0.args&&t0.args.length)files+='<p class="lede" style="margin:.4em 0">Sample arguments: <code>$1 = '+esc(t0.args[0])+'</code></p>';}
+  else files='<details class="fx" open><summary>Sample input</summary><pre class="code">'+esc(t0.stdin)+'</pre></details>';
+  files+='<details class="fx"><summary>Expected output for the sample</summary><pre class="code">'+esc(t0.out)+'</pre></details>';
+  var draft=S.code[e.id]!=null?S.code[e.id]:(e.starter||(kind==="bash"?"":"import sys\n\n"));
+  app.innerHTML='<div class="row" style="justify-content:space-between;margin-bottom:10px"><button class="btn ghost sm" id="lback">← All '+(kind==="bash"?"Bash":"Python")+' exercises</button><span class="timer" id="ltm" style="font-size:1.3rem">0:00</span></div>'+
+   '<div class="lab"><div class="brief"><span class="kicker">'+(kind==="bash"?"Bash":"Python")+' '+(pos+1)+' of '+list.length+' · '+esc(e.tag)+(S.lab[e.id]?" · passed":"")+'</span><h3>'+esc(e.title)+'</h3><p style="color:var(--fg)">'+e.q+'</p>'+files+
+     '<details class="fx"><summary>Hint</summary><p style="margin:.5em 0">'+esc(e.hint)+'</p></details><details class="fx"><summary>Reference solution (try first)</summary><pre class="code">'+esc(e.sol)+'</pre></details></div>'+
+   '<div><label class="dgl" for="led" style="margin-top:0">Your '+(kind==="bash"?"script":"program")+'</label><textarea id="led" class="ed" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off">'+esc(draft)+'</textarea>'+
+     '<div class="row" style="margin-top:10px"><button class="btn ghost" id="lrun">Run on the sample</button><button class="btn" id="lsub">Submit against all tests</button><button class="btn ghost sm" id="lreset">Reset</button></div>'+
+     '<div id="lres" aria-live="polite" style="margin-top:14px"></div></div></div>'+
+   '<div class="row" style="margin-top:28px">'+(pos>0?'<button class="btn ghost" data-nav="'+list[pos-1].id+'">← '+esc(list[pos-1].title)+'</button>':'')+(pos<list.length-1?'<button class="btn ghost" data-nav="'+list[pos+1].id+'">'+esc(list[pos+1].title)+' →</button>':'')+'</div>';
+  var ed=$("#led"),res=$("#lres"),tm=$("#ltm"),stopped=false;
+  timers.push(setInterval(function(){if(stopped)return;var s2=Math.floor((Date.now()-started)/1000);tm.textContent=Math.floor(s2/60)+":"+("0"+s2%60).slice(-2);},1000));
+  ed.oninput=function(){S.code[e.id]=ed.value;save();};
+  ed.onkeydown=function(ev){if(ev.key==="Tab"&&!ev.shiftKey&&!ev.ctrlKey&&!ev.altKey){ev.preventDefault();var a=ed.selectionStart,pad=kind==="bash"?"  ":"    ";ed.value=ed.value.slice(0,a)+pad+ed.value.slice(ed.selectionEnd);ed.selectionStart=ed.selectionEnd=a+pad.length;ed.oninput();}
+    if(ev.key==="Enter"&&(ev.ctrlKey||ev.metaKey)){ev.preventDefault();$("#lrun").click();}};
+  $("#lback").onclick=function(){lab.ex=null;codelab();};
+  $("#lreset").onclick=function(){ed.value=e.starter||(kind==="bash"?"":"import sys\n\n");ed.oninput();res.innerHTML="";};
+  app.onclick=function(ev){var n=ev.target.closest("[data-nav]");if(n&&location.hash==="#codelab"){clearTimers();lab.ex=n.getAttribute("data-nav");codelab();window.scrollTo(0,0);}};
+  function ready(fn){if(kind==="bash"||PY.state==="ready"){fn();return;}res.innerHTML='<p class="lede">Loading Python (about 5 MB, the first time only)…</p>';pyLoad().then(fn,function(err){res.innerHTML='<div class="tres bad"><b>Python is not available here</b><p>'+esc(err.message)+'</p></div>';});}
+  function block(title,text,cls){return text?'<div class="tout"><span class="k">'+title+'</span><pre class="code'+(cls?" "+cls:"")+'">'+esc(text)+'</pre></div>':"";}
+  $("#lrun").onclick=function(){ready(function(){var r=labRun(kind,ed.value,t0),ok=labNorm(r.out)===labNorm(t0.out)&&(t0.code||0)===(kind==="py"?r.code:(t0.code||0));
+    res.innerHTML='<div class="tres '+(ok?"good":"bad")+'"><b>'+(ok?"Sample output matches.":"Sample output does not match yet.")+'</b>'+(ok?'<p>Now submit: the hidden tests use different data.</p>':'')+'</div>'+block("Your output",r.out||"(nothing printed)")+block("Errors",r.err,"err")+(ok?"":block("Expected",t0.out));});};
+  $("#lsub").onclick=function(){ready(function(){var rows="",pass=0;e.tests.forEach(function(t,i){var r=labRun(kind,ed.value,t),ok=labNorm(r.out)===labNorm(t.out)&&(kind!=="py"||(t.code||0)===r.code);if(ok)pass++;
+      rows+='<li class="'+(ok?"d":"x")+'">Test '+(i+1)+(i===0?" (sample)":" (hidden)")+': '+(ok?"passed":"failed"+(r.err?" with an error":labNorm(r.out)===labNorm(t.out)?" on the exit status":""))+'</li>';});
+    var all=pass===e.tests.length;
+    res.innerHTML='<div class="tres '+(all?"good":"bad")+'"><b>'+pass+' of '+e.tests.length+' tests passed'+(all?" in "+tm.textContent:"")+'.</b>'+(all?'<p>Say out loud what the script does, line by line, as you would to an interviewer.</p>':'<p>Hidden tests use different data and edge cases. Check the output format, ordering and empty input.</p>')+'<ul class="steps" style="margin-top:8px">'+rows+'</ul></div>';
+    if(all){stopped=true;if(!S.lab[e.id]){S.lab[e.id]=1;save();toast("Exercise passed: +40 XP");}}});};
+  ed.focus({preventScroll:true});
+}
+/* ---------- Remember: short sessions of tap exercises with spaced repetition (Leitner boxes) ----------
+   Works on any item source ("scope"): "core" is the quest glossary and answer cards; a cert id uses that exam's terms and questions. */
+var RM={topic:"all"},DAY=86400000,RINT=[600000,DAY,2*DAY,4*DAY,8*DAY,16*DAY,32*DAY];
+var STOP={the:1,and:1,that:1,with:1,from:1,this:1,then:1,they:1,their:1,what:1,when:1,which:1,into:1,only:1,each:1,does:1,have:1,there:1,your:1,usually:1,because:1,about:1,other:1,where:1};
+function hsh(s){var h=5381;for(var k=0;k<s.length;k++)h=((h<<5)+h+s.charCodeAt(k))|0;return (h>>>0).toString(36);}
+function firstSentence(s){var m=/^(.+?[.!?])(\s|$)/.exec(s);var f=(m?m[1]:s);return f.length>230?f.slice(0,f.lastIndexOf(" ",220))+"…":f;}
+var RMCACHE={};
+function rmItems(scope){if(RMCACHE[scope]&&scope!=="core")return RMCACHE[scope];var out=[];
+  if(scope==="core"){(window.TERMS||[]).forEach(function(t){out.push({k:"t"+hsh(t[1]),kind:"t",lv:t[0],term:t[1],mean:t[2]});});
+    CARDS.forEach(function(c,i){if(c[2]&&c[2].length>25)out.push({k:"c"+ck(i).slice(1),kind:"c",lv:c[0],q:c[1],say:firstSentence(c[2]),add:c[3]||"",long:true});});}
+  else{var C=CERTS[scope];if(C)C.domains.forEach(function(d,di){(d.terms||[]).forEach(function(t){out.push({k:"x"+hsh(scope+"|"+t[0]),kind:"t",lv:di+1,term:t[0],mean:t[1]});});
+    (d.qs||[]).forEach(function(q){out.push({k:"y"+hsh(scope+"|"+q[0]),kind:"c",lv:di+1,q:q[0],say:q[1],add:q[5]||"",long:false});});});}
+  return RMCACHE[scope]=out;}
+function rmTopic(it,t){return t==="all"||(t==="terms"&&it.kind==="t")||(t==="qs"&&it.kind==="c")||t==="L"+it.lv;}
+function rmStats(scope,t){var now=Date.now(),a=rmItems(scope).filter(function(it){return rmTopic(it,t);}),due=0,nw=0,known=0,box=[0,0,0,0,0,0,0];
+  a.forEach(function(it){var r=S.srs[it.k];if(!r){nw++;return;}box[r.b]++;if(r.d<=now)due++;if(r.b>=3)known++;});return {all:a,due:due,nw:nw,known:known,box:box};}
+function dstr(t){var d=new Date(t);return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
+function today(){return dstr(Date.now());}
+function streakNow(){var R=S.rm;return R.day===today()||R.day===dstr(Date.now()-DAY)?(R.streak||0):0;}
+function remember(){rmPanel(app,{scope:"core",title:'<div class="lvh"><span class="kicker">Remember</span><h1>Five minutes a day, and it sticks</h1><p class="lede">Short rounds of tap exercises: match terms, pick the meaning, spell the word, fill the gap, put an answer in order. Anything you miss comes back sooner. Anything you know waits longer: 1 day, then 2, 4, 8, 16, 32. Every hop and every exam has its own Remember tab too.</p></div>',
+  chips:[["all","Everything"],["terms","Terms"],["qs","Interview answers"]].concat(LEVELS.filter(function(L){return L.n>0&&L.n<8;}).map(function(L){return ["L"+L.n,L.name];}))});}
+/* box: where to draw. o: {scope, title, chips (optional), topic (fixed topic when no chips)} */
+function rmPanel(box,o){
+  var key=o.scope+"|"+(o.topic||""),topic=o.chips?(RM[key]||"all"):(o.topic||"all");
+  if(o.chips&&!o.chips.some(function(c){return c[0]===topic;}))topic="all";
+  var st=rmStats(o.scope,topic),streak=streakNow();
+  var lant=st.box.map(function(n,b){return '<div class="lbox"><svg viewBox="-4 -2 30 34" aria-hidden="true">'+(b>=3?'<ellipse cx="11" cy="16" rx="14" ry="16" fill="#f2c46d" opacity=".3"/>':'')+'<line x1="11" y1="0" x2="11" y2="4" stroke="#0d1130" stroke-width="2"/><ellipse cx="11" cy="16" rx="9" ry="12" fill="'+(b>=3?"#f2c46d":b>=1?"#c8394a":"#3a4580")+'" stroke="#0d1130" stroke-width="2"/></svg><b>'+n+'</b><small>'+["Seen","1 day","2 days","4 days","8 days","16 days","32 days"][b]+'</small></div>';}).join("");
+  box.innerHTML=(o.title||"")+'<div class="rm-top"><div class="sc rm-go"><div class="row" style="justify-content:space-between"><span class="kicker">'+(st.due?st.due+" due now":"Nothing due")+' · '+st.nw+' new left</span><span class="kicker">'+(streak?streak+" day streak":"Start a streak today")+'</span></div>'+
+   '<h3>'+(st.due?"Review what's due, then learn a few new ones":st.nw?"Learn something new":"All caught up. Come back tomorrow")+'</h3><div class="row"><button class="btn" data-rmgo'+(st.due||st.nw?"":" disabled")+'>Start a session</button><span class="score"><b>'+st.known+'</b> of '+st.all.length+' learned</span></div></div>'+
+   '<div class="sc"><span class="kicker">Your lanterns</span><div class="lboxes">'+lant+'</div><p style="margin:0;color:var(--mut);font-size:.88rem">Each lantern is a box. An item moves right when you get it right and back when you miss it. Lit lanterns are learned.</p></div></div>'+
+   (o.chips?'<div class="dgc" data-rmt style="margin-top:18px">'+o.chips.map(function(c){return '<button class="chip" data-t="'+c[0]+'" aria-pressed="'+(c[0]===topic)+'">'+esc(c[1])+'</button>';}).join("")+'</div>':'');
+  var t=box.querySelector("[data-rmt]");if(t)t.onclick=function(e){var b=e.target.closest(".chip");if(b){RM[key]=b.getAttribute("data-t");rmPanel(box,o);}};
+  box.querySelector("[data-rmgo]").onclick=function(){rmSession(box,o.scope,topic,function(){rmPanel(box,o);});};
+}
+function rmSession(root,scope,topic,home){
+  var now=Date.now(),st=rmStats(scope,topic),ALL=rmItems(scope);
+  var due=st.all.filter(function(it){var r=S.srs[it.k];return r&&r.d<=now;}).sort(function(a,b){return S.srs[a.k].d-S.srs[b.k].d;}).slice(0,12);
+  var cap=due.length>=10?2:5,byLv=function(a,b){return a.lv-b.lv;},nt=st.all.filter(function(it){return !S.srs[it.k]&&it.kind==="t";}).sort(byLv),nc=st.all.filter(function(it){return !S.srs[it.k]&&it.kind==="c";}).sort(byLv),fresh=[];
+  while((nt.length||nc.length)&&fresh.length<cap){if(nt.length)fresh.push(nt.shift());if(nt.length&&fresh.length<cap)fresh.push(nt.shift());if(nc.length&&fresh.length<cap)fresh.push(nc.shift());}
+  var items=due.concat(fresh),rec={},steps=[],done=0,right=0,tries=0;
+  items.forEach(function(it){var r=S.srs[it.k];rec[it.k]={it:it,miss:false,left:r?1:2,isNew:!r};});
+  fresh.forEach(function(it){steps.push({t:"learn",it:it});steps.push({t:"easy",it:it});});
+  var terms=items.filter(function(it){return it.kind==="t";});
+  if(terms.length>=4)steps.splice(Math.min(steps.length,4),0,{t:"match",its:shuffle(terms).slice(0,4)});
+  due.forEach(function(it){var b=S.srs[it.k].b;steps.splice(Math.floor(Math.random()*(steps.length+1)),0,{t:b<=1?"easy":b===2?"mid":"hard",it:it});});
+  fresh.forEach(function(it){steps.push({t:"mid",it:it});});
+  var total=steps.length;
+  function commit(k){var x=rec[k],r=S.srs[k]||{b:0,d:0,n:0},nb=x.isNew?(x.miss?0:1):(x.miss?Math.max(0,r.b-2):Math.min(6,r.b+1));
+    S.srs[k]={b:nb,d:Date.now()+RINT[nb],n:(r.n||0)+1};save();}
+  function graded(it,ok){tries++;if(ok)right++;var x=rec[it.k];if(!ok){x.miss=true;var at=Math.min(steps.length,2+Math.floor(Math.random()*2));steps.splice(at,0,{t:"easy",it:it});x.left++;total++;}
+    x.left--;if(x.left<=0)commit(it.k);}
+  function next(){clearTimers();
+    if(!steps.length){var R=S.rm,td=today();if(R.day!==td){R.streak=R.day===dstr(Date.now()-DAY)?(R.streak||0)+1:1;R.day=td;}R.sessions=(R.sessions||0)+1;save();
+      root.innerHTML='<div class="deck"><div class="sc"><span class="kicker">Session done · '+S.rm.streak+' day streak</span><h3>'+right+' of '+tries+' right first time</h3><p style="margin:0;color:var(--mut)">'+fresh.length+' new, '+due.length+' reviewed. Missed items come back in 10 minutes; the rest wait a day or more.</p><div class="row"><button class="btn" id="rmmore">Another round</button><button class="btn ghost" id="rmhome">Done</button></div></div></div>';
+      $("#rmmore").onclick=function(){rmSession(root,scope,topic,home);};$("#rmhome").onclick=home;return;}
+    var s=steps.shift();done++;
+    root.innerHTML='<div class="rm-bar"><button class="btn ghost sm" id="rmq">✕ End</button><i><b style="width:'+Math.round(100*(done-1)/Math.max(total,1))+'%"></b></i></div><div class="deck"><div class="sc rm-card" id="rmc"></div></div>';
+    $("#rmq").onclick=function(){clearTimers();home();};
+    var box=$("#rmc");
+    if(s.t==="learn")return learn(box,s.it);
+    if(s.t==="match")return match(box,s.its);
+    exercise(box,s.it,s.t);}
+  function feedback(box,ok,msg){var f=document.createElement("div");f.className="rm-fb "+(ok?"ok":"no");
+    f.innerHTML=ok?'<b>Right.</b>':'<b>Not quite.</b> '+msg;
+    var b=document.createElement("button");b.className="btn";b.textContent="Continue";b.onclick=next;f.appendChild(b);box.appendChild(f);b.focus();
+    if(ok)timers.push(setTimeout(next,900));}
+  function learn(box,it){var html;
+    if(it.kind==="t")html='<span class="kicker">New term</span><h3 class="rm-term">'+esc(it.term)+'</h3><p class="rm-mean">'+esc(it.mean)+'</p>';
+    else html='<span class="kicker">'+(it.long?"New answer":"New question")+'</span><h3>'+esc(it.q)+'</h3><div class="ans"><b>'+(it.long?"Say first":"Answer")+'</b><p>'+esc(it.say)+'</p>'+(it.add?'<b>'+(it.long?"Then add":"Why")+'</b><p class="add">'+esc(it.add)+'</p>':'')+'</div>';
+    box.innerHTML=html+'<div class="row"><button class="btn" id="rmok">Got it</button></div>';$("#rmok").onclick=next;$("#rmok").focus();}
+  function pool(it,n,get){var same=[],other=[];ALL.forEach(function(x){if(x.kind!==it.kind||x.k===it.k)return;(x.lv===it.lv?same:other).push(x);});
+    var out=[],seen={},a=shuffle(same).concat(shuffle(other)),mine=get(it);seen[mine]=1;a.forEach(function(x){var v=get(x);if(out.length<n&&v&&!seen[v]){seen[v]=1;out.push(v);}});return out;}
+  function pickTiles(box,opts,correct,it,msg){
+    box.querySelector(".rm-opts").onclick=function(e){var b=e.target.closest(".tile");if(!b||box.dataset.done)return;box.dataset.done=1;var ok=opts[+b.getAttribute("data-i")]===correct;
+      [].forEach.call(box.querySelectorAll(".rm-opts .tile"),function(x){x.disabled=true;if(opts[+x.getAttribute("data-i")]===correct)x.classList.add("ok");});if(!ok)b.classList.add("no");
+      graded(it,ok);if(msg)msg(ok);feedback(box,ok,"The answer is highlighted.");};}
+  function choice(box,head,prompt,correct,wrong,it){var opts=shuffle([correct].concat(wrong));
+    box.innerHTML=head+prompt+'<div class="rm-opts">'+opts.map(function(o,i){return '<button class="tile" data-i="'+i+'">'+esc(o)+'</button>';}).join("")+'</div>';pickTiles(box,opts,correct,it);}
+  function exercise(box,it,lvl){
+    if(it.kind==="t"){var spellable=/^[A-Za-z][A-Za-z ]{1,13}$/.test(it.term);
+      if(lvl==="hard"&&spellable)return spell(box,it);
+      if(lvl==="easy"||(lvl==="hard"&&!spellable))return choice(box,'<span class="kicker">Which term is this?</span>','<p class="rm-mean">'+esc(it.mean)+'</p>',it.term,pool(it,3,function(x){return x.term;}),it);
+      return choice(box,'<span class="kicker">What does it mean?</span>','<h3 class="rm-term">'+esc(it.term)+'</h3>',it.mean,pool(it,3,function(x){return x.mean;}),it);}
+    var words=it.say.split(" ").length;
+    if(lvl==="easy")return choice(box,'<span class="kicker">'+(it.long?"Pick the best first sentence":"Pick the right answer")+'</span>','<h3>'+esc(it.q)+'</h3>',it.say,pool(it,it.long?2:3,function(x){return x.say;}),it);
+    if(lvl==="mid"&&!it.long&&Math.random()<.5)return choice(box,'<span class="kicker">Which question does this answer?</span>','<p class="rm-mean">'+esc(it.say)+'</p>',it.q,pool(it,3,function(x){return x.q;}),it);
+    if(lvl==="mid"||words<8)return gap(box,it);
+    return order(box,it);}
+  function keyWords(s){var out=[];s.split(" ").forEach(function(w,i){var b=w.replace(/[^A-Za-z0-9\-\/.]/g,"").replace(/\.$/,"");if((b.length>=4||/\d/.test(b)&&b.length>=2)&&!STOP[b.toLowerCase()])out.push([i,b]);});return out;}
+  function gap(box,it){var fs=it.say,words=fs.split(" "),cand=keyWords(fs);
+    if(!cand.length)return choice(box,'<span class="kicker">Pick the right answer</span>','<h3>'+esc(it.q)+'</h3>',it.say,pool(it,3,function(x){return x.say;}),it);
+    cand.sort(function(a,b){return b[1].length-a[1].length;});var pick=cand[Math.floor(Math.random()*Math.min(3,cand.length))],word=pick[1];
+    var shown=words.map(function(w,i){if(i!==pick[0])return esc(w);var at=w.indexOf(word);return esc(w.slice(0,at))+'<span class="rm-blank">____</span>'+esc(w.slice(at+word.length));}).join(" ");
+    var others=[];ALL.forEach(function(x){if(x.kind==="c"&&x.k!==it.k&&(x.lv===it.lv||Math.random()<.3))keyWords(x.say).forEach(function(p){if(p[1].toLowerCase()!==word.toLowerCase())others.push(p[1]);});});
+    var wrong=[],seen={};shuffle(others).forEach(function(w){if(wrong.length<3&&!seen[w.toLowerCase()]){seen[w.toLowerCase()]=1;wrong.push(w);}});
+    var opts=shuffle([word].concat(wrong));
+    box.innerHTML='<span class="kicker">Fill the gap</span><h3>'+esc(it.q)+'</h3><p class="rm-sent">'+shown+'</p><div class="rm-opts four">'+opts.map(function(o,i){return '<button class="tile" data-i="'+i+'">'+esc(o)+'</button>';}).join("")+'</div>';
+    pickTiles(box,opts,word,it,function(){var bl=box.querySelector(".rm-blank");bl.textContent=word;bl.classList.add("filled");});}
+  function order(box,it){var w=it.say.split(" ");if(w.length>26)w=w.slice(0,26).concat(["…"]);var n=Math.min(5,Math.max(3,Math.ceil(w.length/5))),size=Math.ceil(w.length/n),parts=[];
+    for(var i=0;i<w.length;i+=size)parts.push(w.slice(i,i+size).join(" "));var mix=shuffle(parts.map(function(p,i){return i;}));if(mix.every(function(v,i){return v===i;}))mix.reverse();var got=[];
+    function draw(){box.innerHTML='<span class="kicker">Put the answer in order</span><h3>'+esc(it.q)+'</h3><div class="rm-built">'+(got.length?got.map(function(i){return '<span class="chunk">'+esc(parts[i])+'</span>';}).join(" "):'<span class="rm-ph">Tap the pieces in order</span>')+'</div>'+
+      '<div class="rm-opts chunks">'+mix.map(function(i){return '<button class="tile" data-i="'+i+'"'+(got.indexOf(i)>=0?" disabled":"")+'>'+esc(parts[i])+'</button>';}).join("")+'</div>'+(got.length?'<div class="row"><button class="btn ghost sm" id="rmun">Undo</button></div>':'');
+      box.querySelector(".rm-opts").onclick=function(e){var b=e.target.closest(".tile");if(!b||b.disabled)return;got.push(+b.getAttribute("data-i"));
+        if(got.length===parts.length){var ok=got.every(function(v,i){return v===i;});draw();[].forEach.call(box.querySelectorAll(".tile,#rmun"),function(x){x.disabled=true;});
+          if(!ok)box.querySelector(".rm-built").insertAdjacentHTML("afterend",'<p class="rm-sent">'+esc(parts.join(" "))+'</p>');graded(it,ok);feedback(box,ok,"The full answer is shown above.");}else draw();};
+      var u=$("#rmun");if(u)u.onclick=function(){got.pop();draw();};}
+    draw();}
+  function spell(box,it){var term=it.term,letters=term.replace(/ /g,"").toUpperCase().split(""),abc="ABCDEFGHIJKLMNOPRSTU",extra=[];while(extra.length<2)extra.push(abc[Math.floor(Math.random()*abc.length)]);
+    var tiles=shuffle(letters.concat(extra).map(function(ch,i){return {ch:ch,id:i};})),got=[],missed=false;
+    function draw(){var k=0,slots=term.split("").map(function(ch){if(ch===" ")return '<span class="sp"></span>';var g=got[k++];return '<span class="slot'+(g?" full":"")+'">'+(g?esc(g.ch):"")+'</span>';}).join("");
+      box.innerHTML='<span class="kicker">Spell the term</span><p class="rm-mean">'+esc(it.mean)+'</p><div class="slots">'+slots+'</div><div class="rm-opts letters">'+tiles.map(function(t,i){return '<button class="tile" data-i="'+i+'"'+(got.indexOf(t)>=0?" disabled":"")+'>'+t.ch+'</button>';}).join("")+'</div><div class="row"><button class="btn ghost sm" id="rmun"'+(got.length?"":" disabled")+'>Undo</button><button class="btn ghost sm" id="rmhint">Show it</button></div>';
+      box.querySelector(".rm-opts").onclick=function(e){var b=e.target.closest(".tile");if(!b||b.disabled)return;var t=tiles[+b.getAttribute("data-i")];
+        if(t.ch!==letters[got.length]){missed=true;b.classList.add("no");setTimeout(function(){b.classList.remove("no");},350);return;}
+        got.push(t);if(got.length===letters.length){draw();[].forEach.call(box.querySelectorAll("button"),function(x){x.disabled=true;});graded(it,!missed);feedback(box,!missed,"It's “"+esc(term)+"”. A wrong letter counts as a miss, so it comes back soon.");}else draw();};
+      $("#rmun").onclick=function(){got.pop();draw();};
+      $("#rmhint").onclick=function(){missed=true;box.querySelector(".slots").insertAdjacentHTML("afterend",'<p class="rm-sent">'+esc(term)+'</p>');this.disabled=true;};}
+    draw();}
+  function match(box,its){var L=shuffle(its.slice()),Rr=shuffle(its.slice()),sel=null,doneN=0,missK={};
+    box.innerHTML='<span class="kicker">Match the pairs</span><div class="rm-match"><div>'+L.map(function(it){return '<button class="tile" data-l="'+it.k+'">'+esc(it.term)+'</button>';}).join("")+'</div><div>'+Rr.map(function(it){return '<button class="tile" data-r="'+it.k+'">'+esc(it.mean)+'</button>';}).join("")+'</div></div>';
+    box.querySelector(".rm-match").onclick=function(e){var b=e.target.closest(".tile");if(!b||b.disabled)return;
+      if(b.hasAttribute("data-l")){if(sel)sel.classList.remove("sel");sel=b;b.classList.add("sel");return;}
+      if(!sel)return;var l=sel.getAttribute("data-l"),r=b.getAttribute("data-r");
+      if(l===r){sel.classList.remove("sel");sel.classList.add("ok");b.classList.add("ok");sel.disabled=b.disabled=true;sel=null;doneN++;
+        if(doneN===its.length){var miss=Object.keys(missK).length;its.forEach(function(it){if(missK[it.k])rec[it.k].miss=true;});right+=its.length-miss;tries+=its.length;feedback(box,!miss,"The pairs you mixed up come back sooner.");}}
+      else{missK[l]=1;b.classList.add("no");setTimeout(function(){b.classList.remove("no");},350);}};}
+  next();
+}
+
+/* ---------- Certs: exam prep packs (window.CERTS) with overview, Remember, practice and a timed exam ---------- */
+var CERTS=window.CERTS||{},CV={tab:"overview",dom:"all"};
+var CERT_NEXT=[["CompTIA Network+","N10-009"],["CompTIA Security+","SY0-701"],["Cisco CCNA","200-301"]];
+function certQs(C){var out=[];C.domains.forEach(function(d,di){(d.qs||[]).forEach(function(q){out.push({k:hsh(C.id+"|"+q[0]),d:di,q:q[0],a:q[1],w:[q[2],q[3],q[4]].filter(Boolean),e:q[5]||""});});});return out;}
+function certSt(id){S.cert[id]=S.cert[id]||{q:{},ex:[]};return S.cert[id];}
+function certPct(C,di){var st=certSt(C.id),qs=certQs(C).filter(function(q){return di==null||q.d===di;}),seen=0,ok=0;qs.forEach(function(q){if(q.k in st.q){seen++;if(st.q[q.k])ok++;}});return {n:qs.length,seen:seen,ok:ok};}
+function certsPage(){var ids=Object.keys(CERTS);
+  app.innerHTML='<div class="lvh"><span class="kicker">Certifications</span><h1>Exam prep, one cert at a time</h1><p class="lede">Each exam has the official domains and their weights, study notes, a Remember deck for the terms, practice questions with explanations, and a timed practice exam. Questions here are written for this site; they are not real exam items.</p></div>'+
+   '<div class="mlist">'+ids.map(function(id){var C=CERTS[id],p=certPct(C),r=rmStats(id,"all");return '<a class="m cert-card" href="#cert-'+id+'"><span class="tag">'+esc(C.code)+'</span><b>'+esc(C.name)+'</b><span>'+p.ok+' of '+p.n+' questions right · '+r.known+' of '+r.all.length+' cards learned</span></a>';}).join("")+
+   CERT_NEXT.map(function(c){return '<div class="m cert-card soon"><span class="tag">'+esc(c[1])+'</span><b>'+esc(c[0])+'</b><span>Next, once A+ is working well</span></div>';}).join("")+'</div>';}
+function certPage(id){var C=CERTS[id];if(!C){certsPage();return;}
+  var tabs=[["overview","Overview"],["remember","Remember"],["practice","Practice"]].concat((C.labs||[]).length?[["labs","Labs"]]:[]).concat((C.mocks||[]).length?[["mocks","Mock exams"]]:[]).concat((C.pbqs||[]).length?[["pbq",C.pbqName||"PBQs"]]:[]).concat([["exam","Practice exam"]]);
+  app.innerHTML='<div class="row" style="margin-bottom:10px"><a class="btn ghost sm" href="#certs" style="text-decoration:none">← All certifications</a></div><div class="lvh"><span class="kicker">'+esc(C.code)+'</span><h1>'+esc(C.name)+'</h1><p class="lede">'+esc(C.blurb||"")+'</p></div>'+
+   '<div class="tabs" role="tablist">'+tabs.map(function(t){return '<button class="tab" role="tab" data-ct="'+t[0]+'" aria-selected="'+(t[0]===CV.tab)+'">'+t[1]+'</button>';}).join("")+'</div><div id="cp"></div>';
+  [].forEach.call(app.querySelectorAll("[data-ct]"),function(b){b.onclick=function(){clearTimers();CV.tab=b.getAttribute("data-ct");certPage(id);};});
+  var p=$("#cp");
+  if(CV.tab==="overview"){var f=C.facts||{};
+    p.innerHTML='<div class="cert-facts">'+[["Questions",f.questions],["Time",f.time],["Passing score",f.pass],["Question types",f.types]].filter(function(x){return x[1];}).map(function(x){return '<div><span class="kicker">'+x[0]+'</span><b>'+esc(x[1])+'</b></div>';}).join("")+'</div>'+
+     (C.tips?'<div class="lesson" style="margin:18px 0">'+C.tips+'</div>':'')+
+     '<div class="scroll"><table class="t"><tr><th>Domain</th><th>Weight</th><th>Practice</th></tr>'+C.domains.map(function(d,di){var q=certPct(C,di);return '<tr><td>'+(di+1)+'. '+esc(d.name)+'</td><td>'+d.weight+'%</td><td>'+q.ok+' / '+q.n+'</td></tr>';}).join("")+'</table></div>'+
+     C.domains.map(function(d,di){return '<details class="fx cert-notes"'+(di===0?" open":"")+'><summary>'+(di+1)+'. '+esc(d.name)+' · '+d.weight+'%</summary><div class="lesson">'+d.notes+'</div></details>';}).join("");return;}
+  var chips=[["all","All domains"]].concat(C.domains.map(function(d,di){return ["L"+(di+1),(di+1)+". "+d.name];}));
+  if(CV.tab==="remember"){rmPanel(p,{scope:id,chips:chips});return;}
+  if(CV.tab==="practice"){certPractice(p,C,chips);return;}
+  if(CV.tab==="pbq"){certPbqList(p,C);return;}
+  if(CV.tab==="labs"){certLabs(p,C);return;}
+  if(CV.tab==="mocks"){certMocks(p,C);return;}
+  certExam(p,C);}
+/* PBQs: performance-based tasks. type "fields": each row is a select (shared or row options) or a text box checked by a pattern.
+   type "order": put the items in the right sequence. Scored per row, like the real exam's partial credit. */
+function certLabs(p,C){
+  p.innerHTML='<p class="lede" style="margin-bottom:16px">'+(C.labIntro||"Simulated shell labs. Type the commands yourself. <code>hint</code> shows the next step.")+'</p><div class="mlist">'+C.labs.map(function(m,i){return '<button class="m'+(S.mis[m.id]?" done":"")+'" data-lb="'+i+'"><span class="tag">'+(S.mis[m.id]?"✓ cleared":m.steps.length+" objectives")+' · '+esc(C.domains[m.d].name)+'</span><b>'+esc(m.title)+'</b><span>'+esc(m.brief)+'</span></button>';}).join("")+'</div>';
+  p.querySelector(".mlist").onclick=function(e){var b=e.target.closest("[data-lb]");if(b)runMission(p,C.labs[+b.getAttribute("data-lb")],function(){certLabs(p,C);},function(first){if(first)toast("Lab cleared: +60 XP");});};}
+function certMocks(p,C){var st=certSt(C.id);st.mock=st.mock||{};
+  p.innerHTML='<div class="lesson" style="margin-bottom:14px">'+(C.mockIntro||"")+'</div><div class="mlist">'+C.mocks.map(function(m,i){var b=st.mock[m.id];return '<button class="m'+(b>=70?" done":"")+'" data-mk="'+i+'"><span class="tag">'+(b!=null?"best "+b+"%":m.steps.length+" tasks · "+Math.round(m.minutes/6)/10+" hours")+'</span><b>'+esc(m.title)+'</b><span>'+esc(m.blurb||"")+'</span></button>';}).join("")+'</div>';
+  p.querySelector(".mlist").onclick=function(e){var b=e.target.closest("[data-mk]");if(!b)return;var m=C.mocks[+b.getAttribute("data-mk")];
+    runMission(p,m,function(){clearTimers();certMocks(p,C);},function(_,r){if(!r)return;st.mock[m.id]=Math.max(st.mock[m.id]||0,r.p);save();toast(r.p>=70?"Passed: "+r.p+"%":"Scored "+r.p+"%");});};}
+function certPbqList(p,C){var st=certSt(C.id);st.pbq=st.pbq||{};
+  p.innerHTML='<div class="lesson" style="margin-bottom:14px"><p>'+(C.pbqIntro||'Performance-based questions come first on the real exam and carry more weight. They ask you to do something: match, order, configure. Each item scores on its own, so partial answers still earn points. Flag them on exam day, finish the multiple choice, then come back.')+'</p></div>'+
+   '<div class="mlist">'+C.pbqs.map(function(q,i){var b=st.pbq[q.id];return '<button class="m'+(b===1?" done":"")+'" data-pq="'+i+'"><span class="tag">'+(b!=null?(b===1?"✓ perfect":"best "+Math.round(b*100)+"%"):(q.type==="order"?"order":"match and configure"))+' · '+esc(C.domains[q.d].name)+'</span><b>'+esc(q.title)+'</b></button>';}).join("")+'</div>';
+  p.querySelector(".mlist").onclick=function(e){var b=e.target.closest("[data-pq]");if(b)certPbq(p,C,C.pbqs[+b.getAttribute("data-pq")]);};}
+function certPbq(p,C,q){var st=certSt(C.id),t0=Date.now();st.pbq=st.pbq||{};
+  function ok(row,v){var a=row.a!=null?row.a:row[1];if(row.re)return new RegExp(row.re,"i").test(String(v).trim());return [].concat(a).indexOf(v)>=0;}
+  var head='<div class="row" style="justify-content:space-between;margin-bottom:10px"><button class="btn ghost sm" id="pqback">← All PBQs</button><span class="timer" id="pqt" style="font-size:1.2rem">0:00</span></div><div class="sc"><span class="kicker">PBQ · '+esc(C.domains[q.d].name)+'</span><h3>'+esc(q.title)+'</h3><p style="margin:0">'+q.intro+'</p>';
+  timers.push(setInterval(function(){var s=Math.floor((Date.now()-t0)/1000),e=$("#pqt");if(e)e.textContent=Math.floor(s/60)+":"+("0"+s%60).slice(-2);},1000));
+  function back(){clearTimers();certPbqList(p,C);}
+  function finish(score,total,detail){clearTimers();var f=score/total;st.pbq[q.id]=Math.max(st.pbq[q.id]||0,f);save();
+    var r=$("#pqres");r.innerHTML='<div class="rm-fb '+(score===total?"ok":"no")+'"><span><b>'+score+' of '+total+' correct.</b> '+(q.explain?esc(q.explain):"")+'</span><button class="btn" id="pqagain">Try again</button></div>'+(detail||"");
+    $("#pqagain").onclick=function(){certPbq(p,C,q);};$("#pqsub").disabled=true;}
+  if(q.type==="order"){var mix=shuffle(q.items.map(function(_,i){return i;})),got=[];
+    function draw(){p.innerHTML=head+'<div class="rm-built">'+(got.length?got.map(function(i,n){return '<span class="chunk">'+(n+1)+'. '+esc(q.items[i])+'</span>';}).join("<br>"):'<span class="rm-ph">Tap the steps in order</span>')+'</div>'+
+      '<div class="rm-opts">'+mix.map(function(i){return '<button class="tile" data-i="'+i+'"'+(got.indexOf(i)>=0?" disabled":"")+'>'+esc(q.items[i])+'</button>';}).join("")+'</div><div class="row"><button class="btn ghost sm" id="pqun"'+(got.length?"":" disabled")+'>Undo</button><button class="btn" id="pqsub"'+(got.length===q.items.length?"":" disabled")+'>Submit</button></div><div id="pqres"></div></div>';
+      $("#pqback").onclick=back;
+      p.querySelector(".rm-opts").onclick=function(e){var b=e.target.closest(".tile");if(!b||b.disabled)return;got.push(+b.getAttribute("data-i"));draw();};
+      $("#pqun").onclick=function(){got.pop();draw();};
+      $("#pqsub").onclick=function(){var sc=got.filter(function(v,i){return v===i;}).length;[].forEach.call(p.querySelectorAll(".tile,#pqun"),function(x){x.disabled=true;});
+        finish(sc,q.items.length,sc===q.items.length?"":'<ol class="pq-key">'+q.items.map(function(s,i){return '<li class="'+(got[i]===i?"good":"bad")+'">'+esc(s)+'</li>';}).join("")+'</ol>');};}
+    draw();return;}
+  var rows=q.rows.map(function(r){return Array.isArray(r)?{l:r[0],a:r[1],o:r[2]}:r;});
+  p.innerHTML=head+'<div class="pq-rows">'+rows.map(function(r,i){var opts=r.o||q.opts,id="pq"+i;
+      return '<div class="pq-row"><label for="'+id+'">'+esc(r.l)+'</label>'+(r.re?'<input class="fld" id="'+id+'" autocomplete="off" spellcheck="false" placeholder="'+esc(r.ph||"")+'">':'<select class="fld" id="'+id+'"><option value="">Choose…</option>'+(q.keep?opts:shuffle(opts)).map(function(o){return '<option>'+esc(o)+'</option>';}).join("")+'</select>')+'<span class="pq-mark" id="pqm'+i+'"></span></div>';}).join("")+
+    '</div><div class="row"><button class="btn" id="pqsub">Submit</button></div><div id="pqres"></div></div>';
+  $("#pqback").onclick=back;
+  $("#pqsub").onclick=function(){var sc=0;rows.forEach(function(r,i){var el=$("#pq"+i),good=ok(r,el.value);if(good)sc++;el.disabled=true;
+      $("#pqm"+i).innerHTML=good?'<span class="good">✓</span>':'<span class="bad">✕ '+esc(r.show||[].concat(r.a)[0])+'</span>';});finish(sc,rows.length);};}
+function certPractice(p,C,chips){var st=certSt(C.id);
+  p.innerHTML='<div class="dgc" id="cdc">'+chips.map(function(c){return '<button class="chip" data-t="'+c[0]+'" aria-pressed="'+(c[0]===CV.dom)+'">'+esc(c[1])+'</button>';}).join("")+'</div>'+
+   '<div class="row" style="margin:14px 0 18px"><button class="btn" id="cgo">10 questions</button><button class="btn ghost" id="cmiss">Only ones I missed</button></div><div id="cq"></div>';
+  $("#cdc").onclick=function(e){var b=e.target.closest(".chip");if(b){CV.dom=b.getAttribute("data-t");certPractice(p,C,chips);}};
+  function pool(missed){return certQs(C).filter(function(q){return (CV.dom==="all"||CV.dom==="L"+(q.d+1))&&(!missed||st.q[q.k]===0);});}
+  function run(list){var qs=shuffle(list).slice(0,10),i=0,ok=0,box=$("#cq");if(!qs.length){box.innerHTML='<p class="lede">Nothing here yet. Missed questions show up after you practise.</p>';return;}
+    (function one(){if(i>=qs.length){box.innerHTML='<div class="sc"><h3>'+ok+' of '+qs.length+' right</h3><p style="margin:0;color:var(--mut)">Missed ones are saved under “Only ones I missed”. Aim for 85 percent or better before the real exam.</p><div class="row"><button class="btn" id="cagain">Another 10</button></div></div>';$("#cagain").onclick=function(){run(pool(false));};hud();return;}
+      var q=qs[i],opts=shuffle([q.a].concat(q.w));
+      box.innerHTML='<div class="sc"><span class="kicker">Question '+(i+1)+' of '+qs.length+' · '+esc(C.domains[q.d].name)+'</span><h3 style="font-size:1.15rem">'+esc(q.q)+'</h3><div class="rm-opts">'+opts.map(function(o,j){return '<button class="tile" data-i="'+j+'">'+esc(o)+'</button>';}).join("")+'</div><div id="cfb"></div></div>';
+      box.querySelector(".rm-opts").onclick=function(e){var b=e.target.closest(".tile");if(!b||box.dataset.lock==="1")return;box.dataset.lock="1";var good=opts[+b.getAttribute("data-i")]===q.a;
+        [].forEach.call(box.querySelectorAll(".tile"),function(x){x.disabled=true;if(opts[+x.getAttribute("data-i")]===q.a)x.classList.add("ok");});if(!good)b.classList.add("no");
+        st.q[q.k]=good?1:0;if(good)ok++;save();
+        $("#cfb").innerHTML='<div class="rm-fb '+(good?"ok":"no")+'"><span><b>'+(good?"Right.":"Not quite.")+'</b> '+esc(q.e)+'</span><button class="btn" id="cnext">Next</button></div>';
+        $("#cnext").onclick=function(){box.dataset.lock="0";i++;one();};$("#cnext").focus();};})();}
+  $("#cgo").onclick=function(){run(pool(false));};$("#cmiss").onclick=function(){run(pool(true));};}
+/* Practice exam: a few PBQs first, like the real test, then multiple choice weighted by domain.
+   A PBQ counts as PBQW points, scored by the share of its items you got right. */
+var PBQW=3;
+function pbqRows(q){return q.rows.map(function(r){return Array.isArray(r)?{l:r[0],a:r[1],o:r[2]}:r;});}
+function pbqOk(r,v){if(v==null||v==="")return false;if(r.re)return new RegExp(r.re,"i").test(String(v).trim());return [].concat(r.a).indexOf(v)>=0;}
+function pbqFrac(q,a){if(!a)return 0;if(q.type==="order"){var n=0;q.items.forEach(function(_,i){if(a[i]===i)n++;});return n/q.items.length;}
+  var rows=pbqRows(q),n=0;rows.forEach(function(r,i){if(pbqOk(r,a[i]))n++;});return n/rows.length;}
+function certExam(p,C){var st=certSt(C.id),all=certQs(C),hist=st.ex.slice(-5).reverse(),pb=C.pbqs||[];
+  var np=Math.min(C.examPbqs||3,pb.length),n=Math.max(0,Math.min((C.examSize||90)-np,all.length)),total=n+np,mins=C.examMinutes||total;
+  p.innerHTML='<div class="sc"><h3>Timed practice exam</h3><p style="margin:0">'+(np&&n?np+' performance-based questions first, then ':np?np+' performance-based tasks. ':'')+(n?n+' multiple-choice questions drawn by domain weight. ':'')+mins+' minutes, no feedback until you finish. Flag questions and come back to them, like the real thing.</p>'+
+   (np?'<p style="margin:0">Exam-day habit: skim the PBQs, flag them, answer the multiple choice, then come back with the time that is left. Here each PBQ is worth '+PBQW+' questions, with partial credit.</p>':'')+
+   '<p style="margin:0;color:var(--mut)">The real exam is scaled from 100 to 900. Treat 85 percent here as ready.</p><div class="row"><button class="btn" id="exgo">Start the exam</button></div>'+
+   (hist.length?'<p style="margin:0;color:var(--mut)">Recent: '+hist.map(function(h){return h.s+"% ("+h.d+")";}).join(" · ")+'</p>':'')+'</div>';
+  $("#exgo").onclick=function(){
+    var picks=[],byD=C.domains.map(function(d,di){return shuffle(all.filter(function(q){return q.d===di;}));});
+    C.domains.forEach(function(d,di){var want=Math.round(n*d.weight/100);picks=picks.concat(byD[di].splice(0,want));});
+    var rest=shuffle([].concat.apply([],byD));while(picks.length<n&&rest.length)picks.push(rest.pop());picks=shuffle(picks.slice(0,n));
+    var items=shuffle(pb.slice()).slice(0,np).map(function(q){return {pbq:q};}).concat(picks.map(function(q){return {mc:q,o:shuffle([q.a].concat(q.w))};}));
+    items.forEach(function(it){if(it.pbq&&it.pbq.type!=="order")it.ro=pbqRows(it.pbq).map(function(r){return r.re?null:(it.pbq.keep?(r.o||it.pbq.opts):shuffle(r.o||it.pbq.opts));});if(it.pbq&&it.pbq.type==="order")it.mix=shuffle(it.pbq.items.map(function(_,k){return k;}));});
+    var ans={},flag={},i=0,end=Date.now()+mins*60000;
+    function fmt(ms){var s=Math.max(0,Math.round(ms/1000));return Math.floor(s/60)+":"+("0"+s%60).slice(-2);}
+    function answered(j){var a=ans[j],it=items[j];if(a==null)return false;if(!it.pbq)return true;return it.pbq.type==="order"?a.length===it.pbq.items.length:a.some(function(v){return v;});}
+    function body(it){
+      if(it.mc)return '<h3 style="font-size:1.15rem">'+esc(it.mc.q)+'</h3><div class="rm-opts">'+it.o.map(function(o,j){return '<button class="tile'+(ans[i]===j?" sel":"")+'" data-i="'+j+'">'+esc(o)+'</button>';}).join("")+'</div>';
+      var q=it.pbq,h='<span class="kicker">Performance-based · '+esc(C.domains[q.d].name)+'</span><h3 style="font-size:1.15rem">'+esc(q.title)+'</h3><p style="margin:0">'+q.intro+'</p>';
+      if(q.type==="order"){var got=ans[i]||[];return h+'<div class="rm-built">'+(got.length?got.map(function(k,m){return '<span class="chunk">'+(m+1)+'. '+esc(q.items[k])+'</span>';}).join("<br>"):'<span class="rm-ph">Tap the steps in order</span>')+'</div><div class="rm-opts pqord">'+it.mix.map(function(k){return '<button class="tile" data-k="'+k+'"'+(got.indexOf(k)>=0?" disabled":"")+'>'+esc(q.items[k])+'</button>';}).join("")+'</div><div class="row"><button class="btn ghost sm" id="pqclr"'+(got.length?"":" disabled")+'>Start over</button></div>';}
+      var a=ans[i]||[];return h+'<div class="pq-rows">'+pbqRows(q).map(function(r,k){var id="xq"+k,v=a[k]||"";return '<div class="pq-row"><label for="'+id+'">'+esc(r.l)+'</label>'+(r.re?'<input class="fld" id="'+id+'" data-k="'+k+'" autocomplete="off" spellcheck="false" placeholder="'+esc(r.ph||"")+'" value="'+esc(v)+'">':'<select class="fld" id="'+id+'" data-k="'+k+'"><option value="">Choose…</option>'+it.ro[k].map(function(o){return '<option'+(o===v?" selected":"")+'>'+esc(o)+'</option>';}).join("")+'</select>')+'<span></span></div>';}).join("")+'</div>';}
+    function draw(){var it=items[i];
+      p.innerHTML='<div class="row" style="justify-content:space-between;margin-bottom:10px"><span class="kicker">'+(it.pbq?"PBQ ":"Question ")+(i+1)+' of '+total+(flag[i]?" · flagged":"")+'</span><span class="timer" id="ext" style="font-size:1.3rem">'+fmt(end-Date.now())+'</span></div>'+
+       '<div class="sc">'+body(it)+'<div class="row"><button class="btn ghost sm" id="exprev"'+(i?"":" disabled")+'>← Back</button><button class="btn ghost sm" id="exflag">'+(flag[i]?"Unflag":"Flag")+'</button><button class="btn sm" id="exnext">'+(i<total-1?"Next →":"Review")+'</button></div></div>'+
+       '<div class="exgrid">'+items.map(function(x,j){return '<button class="'+(j===i?"cur ":"")+(answered(j)?"done ":"")+(flag[j]?"flg":"")+'" data-j="'+j+'">'+(x.pbq?"P"+(j+1):(j+1))+'</button>';}).join("")+'</div><div class="row" style="margin-top:12px"><button class="btn" id="exsub">Finish and score</button></div>';
+      if(it.mc)p.querySelector(".rm-opts").onclick=function(e){var b=e.target.closest(".tile");if(!b)return;ans[i]=+b.getAttribute("data-i");draw();};
+      else if(it.pbq.type==="order"){p.querySelector(".pqord").onclick=function(e){var b=e.target.closest(".tile");if(!b||b.disabled)return;ans[i]=(ans[i]||[]).concat([+b.getAttribute("data-k")]);draw();};$("#pqclr").onclick=function(){ans[i]=[];draw();};}
+      else [].forEach.call(p.querySelectorAll(".pq-rows .fld"),function(el){el.onchange=el.oninput=function(){ans[i]=ans[i]||[];ans[i][+el.getAttribute("data-k")]=el.value;var g=p.querySelector('[data-j="'+i+'"]');if(g)g.classList.toggle("done",answered(i));};});
+      p.querySelector(".exgrid").onclick=function(e){var b=e.target.closest("[data-j]");if(b){i=+b.getAttribute("data-j");draw();}};
+      $("#exprev").onclick=function(){i--;draw();};$("#exnext").onclick=function(){if(i<total-1){i++;draw();}else{var un=items.filter(function(_,j){return !answered(j);}).length;toast(un?un+" unanswered. Use the grid to jump back.":"All answered. Finish when ready.");}};
+      $("#exflag").onclick=function(){flag[i]=!flag[i];draw();};$("#exsub").onclick=score;}
+    function score(){clearTimers();var pts=0,max=0,per=C.domains.map(function(){return [0,0];}),missed=[],pbr=[];
+      items.forEach(function(it,j){var a=ans[j];
+        if(it.pbq){var f=pbqFrac(it.pbq,a);pts+=f*PBQW;max+=PBQW;pbr.push([it.pbq,f]);st.pbq=st.pbq||{};st.pbq[it.pbq.id]=Math.max(st.pbq[it.pbq.id]||0,f);return;}
+        var q=it.mc,good=a!=null&&it.o[a]===q.a;max++;per[q.d][1]++;if(good){pts++;per[q.d][0]++;}else missed.push([q,a!=null?it.o[a]:"(no answer)"]);st.q[q.k]=good?1:0;});
+      var pct=Math.round(100*pts/max);st.ex.push({s:pct,d:today()});save();
+      p.innerHTML='<div class="sc"><span class="kicker">'+(pct>=85?"Ready":"Not yet")+'</span><h3>'+pct+'% · '+(Math.round(pts*10)/10)+' of '+max+' points</h3><div class="scroll"><table class="t"><tr><th>Section</th><th>Result</th></tr>'+
+        pbr.map(function(x){return '<tr><td>PBQ: '+esc(x[0].title)+'</td><td>'+Math.round(x[1]*100)+'%</td></tr>';}).join("")+
+        per.map(function(x,di){return '<tr><td>'+esc(C.domains[di].name)+'</td><td>'+x[0]+' / '+x[1]+'</td></tr>';}).join("")+'</table></div><div class="row"><button class="btn" id="exagain">Back to practice exams</button></div></div>'+
+       (pbr.some(function(x){return x[1]<1;})?'<div class="lesson" style="margin-top:20px"><h3>PBQ answer keys</h3></div>'+pbr.filter(function(x){return x[1]<1;}).map(function(x){var q=x[0];return '<div class="sc" style="margin-bottom:10px"><b>'+esc(q.title)+'</b>'+(q.type==="order"?'<ol class="pq-key">'+q.items.map(function(s){return '<li>'+esc(s)+'</li>';}).join("")+'</ol>':'<ul class="pq-key">'+pbqRows(q).map(function(r){return '<li>'+esc(r.l)+': <b>'+esc(r.show||[].concat(r.a)[0])+'</b></li>';}).join("")+'</ul>')+(q.explain?'<p style="margin:0;color:var(--mut)">'+esc(q.explain)+'</p>':'')+'</div>';}).join(""):"")+
+       (missed.length?'<div class="lesson" style="margin-top:20px"><h3>Review what you missed</h3></div>'+missed.map(function(m){return '<div class="sc" style="margin-bottom:10px"><b>'+esc(m[0].q)+'</b><p style="margin:0">Your answer: '+esc(m[1])+'</p><p style="margin:0"><b>Correct:</b> '+esc(m[0].a)+'</p><p style="margin:0;color:var(--mut)">'+esc(m[0].e)+'</p></div>';}).join(""):"");
+      $("#exagain").onclick=function(){certExam(p,C);};}
+    timers.push(setInterval(function(){var t=$("#ext");if(t)t.textContent=fmt(end-Date.now());if(Date.now()>=end){toast("Time is up.");score();}},1000));
+    draw();};}
+function sheet(){app.innerHTML='<div class="lvh"><span class="kicker">Interview morning. Read once. Nothing new.</span><h1>The cheat sheet</h1><p class="lede">One line per topic. Face down on the desk during the call.</p></div><div class="scroll"><table class="t sheet"><tr><th>Topic</th><th>The one line</th></tr>'+SHEET.map(function(r){return "<tr><td>"+esc(r[0])+"</td><td>"+esc(r[1])+"</td></tr>";}).join("")+'</table></div>'+
+  '<div class="lesson" style="margin-top:26px"><h3>During the call</h3><ul><li>Open with <q>Happy to dive in.</q></li><li>First sentence answers the question.</li><li>Same question twice: <q>The core of it is…</q></li><li>Don\'t know: the gap sentence, then reason out loud.</li><li>Never apologise. Three seconds to think is fine.</li><li>End with: <q>Thank you. I enjoyed this. What are the next steps?</q></li></ul><h3>After</h3><p>Within half an hour, write down every question they asked and what you said, while it\'s fresh.</p></div>';}
+
+hud();route();acctStart();
+})();
+</script>
