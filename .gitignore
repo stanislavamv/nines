@@ -1,0 +1,15 @@
+# Private content: never commit
+quest/packs/personal.js
+private/
+*.private.*
+*.pcap
+.env
+.env.*
+
+# Local tooling and build output
+.claude/
+dist/
+node_modules/
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,0 +1,4 @@
+# Same line endings on every machine, so checksums and diffs are stable.
+* text=auto eol=lf
+# Vendored files are checksummed: never convert them.
+quest/vendor/** -text

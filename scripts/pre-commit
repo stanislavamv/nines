@@ -1,0 +1,3 @@
+#!/bin/sh
+# Copy to .git/hooks/pre-commit. Blocks a commit if a public file contains a private term or a secret.
+exec node scripts/check-private.mjs
