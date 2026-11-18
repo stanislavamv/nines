@@ -17,7 +17,7 @@ M.push({id:"route", lv:1, title:"The router that would not route",
   {g:"Check that ARP for the gateway resolved", re:/^ip neigh/, hint:"ip netns exec red ip neigh"},
   {g:"Check whether this host routes at all", re:/^sysctl net\.ipv4\.ip_forward$/, hint:"sysctl net.ipv4.ip_forward"},
   {g:"Turn forwarding on", re:/^sysctl -w net\.ipv4\.ip_forward=1/, hint:"sysctl -w net.ipv4.ip_forward=1"},
-  {g:"Ping again and read the TTL", re:/^ping .*10\.20\.0\.2/, when:function(s){return s.fwd==1;}, hint:"Run the same ping. ttl=63 proves one routing hop."}
+  {g:"Ping again and read the TTL", re:/^ping .*10\.20\.0\.2/, when:function(s){return s.fwd==1;}, hint:"Run the same ping. ttl=63 proves one routing hop.", solve:"ip netns exec red ping -c 1 -W 1 10.20.0.2"}
  ],
  cmds:[
   [/^ping .*10\.20\.0\.2/, function(s){return s.fwd? "PING 10.20.0.2 (10.20.0.2) 56(84) bytes of data.\n64 bytes from 10.20.0.2: icmp_seq=1 ttl=63 time=0.071 ms\n\n--- 10.20.0.2 ping statistics ---\n1 packets transmitted, 1 received, 0% packet loss, time 0ms" : "PING 10.20.0.2 (10.20.0.2) 56(84) bytes of data.\n\n--- 10.20.0.2 ping statistics ---\n1 packets transmitted, 0 received, 100% packet loss, time 0ms";}],
@@ -89,7 +89,7 @@ M.push({id:"stateful", lv:3, title:"One rule from stateless", page:"PAGE: allowe
   {g:"List the FORWARD rules with counters", re:/^iptables .*-L|^iptables -nvL/, hint:"iptables -L FORWARD -v -n --line-numbers"},
   {g:"Capture on green's side: does a SYN-ACK come back?", re:/^tcpdump .*br1/, hint:"tcpdump -lni br1 tcp port 8080"},
   {g:"Restore the rule that lets replies through", re:/^iptables -[IA] FORWARD.*(ESTABLISHED,RELATED|RELATED,ESTABLISHED).*-j ACCEPT/, hint:"iptables -I FORWARD 1 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT"},
-  {g:"Retest", re:/^nc .*10\.20\.0\.2 8080/, when:function(s){return s.est;}, hint:"Same nc command as step 1."}
+  {g:"Retest", re:/^nc .*10\.20\.0\.2 8080/, when:function(s){return s.est;}, hint:"Same nc command as step 1.", solve:"ip netns exec red nc -zv -w2 10.20.0.2 8080"}
  ],
  cmds:[
   [/^nc .*10\.20\.0\.2 8080/, function(s){return s.est?"Connection to 10.20.0.2 8080 port [tcp/*] succeeded!":"nc: connect to 10.20.0.2 port 8080 (tcp) timed out: Operation now in progress";}],
@@ -132,10 +132,10 @@ M.push({id:"mtu", lv:4, title:"The black hole", page:"PAGE: SSH to tenant VM wor
  steps:[
   {g:"Reproduce the big transfer", re:/^curl .*10\.20\.0\.2.*big/, hint:"ip netns exec red curl -m 10 -o /dev/null http://10.20.0.2:8080/big.bin"},
   {g:"Ping full-size with Don't Fragment set", re:/^ping .*-M do .*-s 1472|^ping .*-s 1472 .*-M do/, hint:"ip netns exec red ping -c 1 -M do -s 1472 10.20.0.2"},
-  {g:"Step the size down until it works", re:/^ping .*-s (\d+)/, when:function(s){return s.okping;}, hint:"1450 minus 28 bytes of headers. Try -s 1422."},
+  {g:"Step the size down until it works", re:/^ping .*-s (\d+)/, when:function(s){return s.okping;}, hint:"1450 minus 28 bytes of headers. Try -s 1422.", solve:"ip netns exec red ping -c 1 -M do -s 1422 10.20.0.2"},
   {g:"Find the interface eating the bytes", re:/^ip (-d )?(-br )?link/, hint:"ip link"},
   {g:"Fix it: clamp MSS, or stop dropping ICMP frag-needed", re:/TCPMSS|^iptables -D FORWARD/, when:mtuFixed, hint:"iptables -t mangle -A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu"},
-  {g:"Retest the transfer", re:/^curl .*10\.20\.0\.2.*big/, when:mtuFixed, hint:"Same curl as step 1."}
+  {g:"Retest the transfer", re:/^curl .*10\.20\.0\.2.*big/, when:mtuFixed, hint:"Same curl as step 1.", solve:"ip netns exec red curl -m 10 -o /dev/null http://10.20.0.2:8080/big.bin"}
  ],
  cmds:[
   [/^curl .*10\.20\.0\.2.*big/, function(s){return mtuFixed(s)?"  % Total    % Received % Xferd  Average Speed   Time\n100 50.0M  100 50.0M    0     0   412M      0 --:--:-- --:--:-- --:--:--  413M":"  % Total    % Received % Xferd  Average Speed   Time\n  0 50.0M    0     0    0     0      0      0 --:--:--  0:00:10 --:--:--     0\ncurl: (28) Operation timed out after 10001 milliseconds with 0 out of 52428800 bytes received";}],
@@ -568,7 +568,7 @@ M.push({id:"gate", lv:7, title:"The rollout gate", page:"CHANGE: dataplane v2.14
   {g:"See which minions answer", re:/^salt ['"]?\*['"]? test\.ping/, hint:"salt '*' test.ping"},
   {g:"Dry run on the first host", re:/^salt ['"]?edge-01['"]? state\.apply dataplane test=True/, hint:"salt 'edge-01' state.apply dataplane test=True"},
   {g:"Apply to one host only", re:/^salt ['"]?edge-01['"]? state\.apply dataplane$/, hint:"salt 'edge-01' state.apply dataplane"},
-  {g:"Run the health gate and print its exit code", re:/^python3? (\.\/)?healthcheck\.py .*echo .*\$\?/, when:function(s){return s.one;}, hint:"python3 healthcheck.py 10.20.0.2:8080 10.20.0.2:9090; echo \"exit=$?\""},
+  {g:"Run the health gate and print its exit code", re:/^python3? (\.\/)?healthcheck\.py .*echo .*\$\?/, when:function(s){return s.one;}, hint:"python3 healthcheck.py 10.20.0.2:8080 10.20.0.2:9090; echo \"exit=$?\"", solve:"python3 healthcheck.py 10.20.0.2:8080 10.20.0.2:9090; echo exit=$?"},
   {g:"Decide: answer continue | stop", re:/^answer stop/, hint:"Exit 1 means a target failed."}
  ],
  cmds:[
