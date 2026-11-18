@@ -1,0 +1,5 @@
+{
+  "_comment": "Public by design. The publishable key only allows what the database's row-level security policies allow. Never put a secret or service_role key here.",
+  "supabaseUrl": "https://ctncexcogggmattatohr.supabase.co",
+  "supabaseKey": "sb_publishable_daeqPhfsdlhky9OVtTv4ZQ_-T_YxpQk"
+}
