@@ -57,6 +57,10 @@ test("the public build is safe", () => {
   assert.ok(!/<script[^>]+personal\.js/.test(html), "the personal pack is not loaded");
   assert.ok(!existsSync(join(dist, "packs", "personal.js")), "the personal pack is not copied");
   assert.ok(!/<script>\s*\(/.test(html), "no inline app script");
+  const privacy = readFileSync(join(dist, "privacy.html"), "utf8");
+  assert.match(privacy, /Privacy policy/, "the privacy policy page ships");
+  assert.match(privacy, /Effective \d{1,2} \w+ \d{4}/, "the privacy policy is dated");
+  assert.ok(!/<script>/.test(privacy) && existsSync(join(dist, "privacy.js")), "the privacy page has no inline script");
   const csp = /Content-Security-Policy" content="([^"]+)"/.exec(html)[1];
   assert.match(csp, /default-src 'none'/);
   assert.match(csp, /form-action 'none'/);

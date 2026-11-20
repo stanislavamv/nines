@@ -90,7 +90,7 @@ Anyone using the site can also type their own stories and interview details on t
 
 ## Privacy
 
-Read [SECURITY.md](SECURITY.md) before publishing anything. The pre-commit hook runs `node scripts/check-private.mjs` on every commit; install it with `cp scripts/pre-commit .git/hooks/pre-commit`.
+The privacy policy for users of the site is `quest/privacy.html` (served as `privacy.html`, linked from the Account page). Read [SECURITY.md](SECURITY.md) before publishing anything. The pre-commit hook runs `node scripts/check-private.mjs` on every commit; install it with `cp scripts/pre-commit .git/hooks/pre-commit`.
 
 ## License
 

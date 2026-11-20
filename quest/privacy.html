@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Nines Privacy Policy</title>
+<style>
+:root{--bg:#141935;--panel:#1c2349;--fg:#eef0ff;--mut:#a9b0d8;--acc:#f2c46d;--line:#39427a;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:46rem;margin:0 auto;padding:2.5rem max(16px,env(safe-area-inset-left,0px)) 4rem max(16px,env(safe-area-inset-right,0px))}
+h1{font-size:2rem;line-height:1.15;margin:0 0 .3rem}
+h2{font-size:1.2rem;margin:2.2rem 0 .5rem;color:var(--acc)}
+p,li{color:var(--fg)}
+.meta{color:var(--mut);margin:0 0 1.5rem}
+a{color:var(--acc)}
+table{border-collapse:collapse;width:100%;font-size:.95rem;margin:.6rem 0}
+th,td{border-bottom:1px solid var(--line);padding:.5rem .6rem;text-align:left;vertical-align:top}
+th{color:var(--mut);font-weight:600}
+.scroll{overflow-x:auto}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:.9rem 1.1rem;margin:1rem 0}
+</style>
+</head>
+<body>
+<main>
+<p><a href="./">← Back to Nines</a></p>
+<h1>Privacy policy</h1>
+<p class="meta">Effective 18 November 2026</p>
+
+<div class="box">
+<p><b>The short version.</b> Nines works without an account, and then everything stays in your browser. If you sign in, we store your email address (through our sign-in provider) and one row of your study progress, which only you can read. No ads, no analytics, no tracking, and nothing is sold or shared for marketing.</p>
+</div>
+
+<h2>Who we are</h2>
+<p>Nines is an independent, non-commercial study project for SRE, DevOps and platform engineering interviews and IT certifications. It is open source. In this policy, "we" means the people who run the project.</p>
+
+<h2>What we collect</h2>
+<div class="scroll"><table>
+<tr><th>Data</th><th>When</th><th>Where it is kept</th><th>Why</th></tr>
+<tr><td>Study progress, notes, stories you type, interview details you enter, Code Lab drafts</td><td>Always</td><td>Your browser's local storage, on your device</td><td>So the app remembers your progress</td></tr>
+<tr><td>Your email address and sign-in provider identifier (for example your Google or GitHub account id)</td><td>Only if you sign in</td><td>Supabase Auth, our sign-in service</td><td>To sign you in and keep your account</td></tr>
+<tr><td>A copy of the progress above, keyed on a random user id</td><td>Only if you sign in and leave sync on</td><td>One row in our Supabase database</td><td>To sync your progress between your devices</td></tr>
+<tr><td>Sign-in session tokens</td><td>Only if you sign in</td><td>Your browser's local storage</td><td>To keep you signed in</td></tr>
+</table></div>
+<p>When you sign in with Google or GitHub, they share your email address and basic profile (name and picture) with our sign-in service. Nines does not store your name or picture in its own tables and does not use them.</p>
+
+<h2>What we do not do</h2>
+<ul>
+<li>We do not use analytics, advertising, tracking pixels or cookies of our own.</li>
+<li>We do not sell, rent or share your data for marketing.</li>
+<li>We do not read your synced progress. The database only lets each account read its own row.</li>
+<li>Code you write in the Code Lab runs in your own browser and is never sent to us.</li>
+</ul>
+
+<h2>Services that see your data</h2>
+<ul>
+<li><b>Supabase</b> runs our sign-in and database, in the Americas region. It processes your email address and your progress row on our behalf.</li>
+<li><b>Google</b> or <b>GitHub</b>, only if you choose to sign in with them, under their own privacy policies.</li>
+<li><b>GitHub Pages</b> hosts the website and, like any web host, may log your IP address and browser details when pages load.</li>
+<li><b>cdnjs</b> (Cloudflare) serves two open-source libraries, and <b>Google Fonts</b> serves the fonts. Your browser requests these files directly, which shows them your IP address. No other data is sent.</li>
+</ul>
+
+<h2>How long we keep it</h2>
+<p>Your account and progress row are kept until you delete them. Data in your browser stays until you clear it, reset progress, or clear your browser's site data.</p>
+
+<h2>Your choices and rights</h2>
+<p>All of these work from the <b>Account</b> page in the app, without asking anyone:</p>
+<ul>
+<li><b>Access and portability:</b> "Export my data" downloads everything we store about your progress as a JSON file.</li>
+<li><b>Correction:</b> change your progress, notes and interview details in the app; sync updates your row.</li>
+<li><b>Stop syncing:</b> turn sync off at any time; nothing more leaves your browser.</li>
+<li><b>Deletion:</b> "Delete synced progress" removes your row. "Delete account" removes your account and your row permanently.</li>
+</ul>
+<p>Depending on where you live (for example under the GDPR in the EU and UK, or the CCPA in California), you have legal rights to access, correct, delete and export your data, and to object to or restrict its use. The self-service options above cover these. We rely on your consent and on providing the service you asked for as our legal bases.</p>
+
+<h2>Security</h2>
+<p>Sign-in uses Google, GitHub or a one-time email link, so Nines never handles a password. Each account can read and write only its own row, enforced by the database. Data travels over HTTPS. The details are in the project's security notes (SECURITY.md in the repository).</p>
+
+<h2>Children</h2>
+<p>Nines is meant for adults preparing for work and certifications. Do not create an account if you are under 16.</p>
+
+<h2>Changes</h2>
+<p>If this policy changes, we will update the date at the top. Significant changes will also be noted in the project's repository.</p>
+
+<h2>Contact</h2>
+<p>For privacy questions, open an issue on the project's GitHub repository<span id="repo"></span>. Please do not include personal details in a public issue; for anything sensitive, use the repository's private <b>Security → Report a vulnerability</b> form.</p>
+</main>
+<script src="privacy.js"></script>
+</body>
+</html>

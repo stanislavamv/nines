@@ -52,6 +52,7 @@ writeFileSync(join(out, "app.js"), m[1] + "\n");
 for (const f of ["data.js", "cards.js", "term.js", "shell.js", "lab.js", "night.js", "terms.js"]) copyFileSync(join(src, f), join(out, f));
 for (const f of readdirSync(join(src, "certs")).filter((f) => f.endsWith(".js"))) copyFileSync(join(src, "certs", f), join(out, "certs", f));
 copyFileSync(join(src, "packs", "personal.example.js"), join(out, "packs", "personal.example.js"));
+for (const f of ["privacy.html", "privacy.js"]) copyFileSync(join(src, f), join(out, f));
 if (cfg) {
   for (const f of [VENDOR, "supabase-LICENSE.txt"]) copyFileSync(join(src, "vendor", f), join(out, "vendor", f));
   writeFileSync(join(out, "config.js"), "/* Public configuration. The publishable key only allows what row-level security allows. */\nwindow.NINES_CONFIG = " +
